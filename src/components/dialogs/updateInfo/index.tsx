@@ -4,23 +4,26 @@ import {
   handleMessageBox,
   handleMessage,
   handleNewDialog,
-} from "../../../store/actions/manager";
+  handleNewWarning,
+} from "../../../store/actions";
 import UpdateInfo from "./component";
-import { withNamespaces } from "react-i18next";
+import { withTranslation } from "react-i18next";
 import { stateType } from "../../../store";
 
 const mapStateToProps = (state: stateType) => {
   return {
     currentBook: state.book.currentBook,
     books: state.manager.books,
+    isShowNew: state.manager.isShowNew,
   };
 };
 const actionCreator = {
   handleMessageBox,
   handleMessage,
   handleNewDialog,
+  handleNewWarning,
 };
 export default connect(
   mapStateToProps,
   actionCreator
-)(withNamespaces()(UpdateInfo as any));
+)(withTranslation()(UpdateInfo as any));

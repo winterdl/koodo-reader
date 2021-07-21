@@ -1,14 +1,10 @@
 import localforage from "localforage";
 import OtherUtil from "../../utils/otherUtil";
+import SortUtil from "../../utils/readUtils/sortUtil";
 import BookModel from "../../model/Book";
-import BookmarkModel from "../../model/Bookmark";
-import NoteModel from "../../model/Note";
 import { Dispatch } from "redux";
 import AddTrash from "../../utils/readUtils/addTrash";
 
-export function handleNotes(notes: NoteModel[]) {
-  return { type: "HANDLE_NOTES", payload: notes };
-}
 export function handleBooks(books: BookModel[]) {
   return { type: "HANDLE_BOOKS", payload: books };
 }
@@ -21,8 +17,11 @@ export function handleSearchResults(searchResults: number[]) {
 export function handleSearch(isSearch: boolean) {
   return { type: "HANDLE_SEARCH", payload: isSearch };
 }
-export function handleDownloadDesk(isDownloadDesk: boolean) {
-  return { type: "HANDLE_DOWNLOAD_DESK", payload: isDownloadDesk };
+export function handleTipDialog(isTipDialog: boolean) {
+  return { type: "HANDLE_TIP_DIALOG", payload: isTipDialog };
+}
+export function handleTip(tip: string) {
+  return { type: "HANDLE_TIP", payload: tip };
 }
 export function handleSetting(isSettingOpen: boolean) {
   return { type: "HANDLE_SETTING", payload: isSettingOpen };
@@ -49,6 +48,9 @@ export function handleLoadingDialog(isShowLoading: boolean) {
 export function handleNewDialog(isShowNew: boolean) {
   return { type: "HANDLE_SHOW_NEW", payload: isShowNew };
 }
+export function handleNewWarning(isNewWarning: boolean) {
+  return { type: "HANDLE_NEW_WARNING", payload: isNewWarning };
+}
 export function handleBookSort(isBookSort: boolean) {
   return { type: "HANDLE_BOOK_SORT", payload: isBookSort };
 }
@@ -68,9 +70,7 @@ export function handleNoteSortCode(noteSortCode: {
 }) {
   return { type: "HANDLE_NOTE_SORT_CODE", payload: noteSortCode };
 }
-export function handleBookmarks(bookmarks: BookmarkModel[]) {
-  return { type: "HANDLE_BOOKMARKS", payload: bookmarks };
-}
+
 export function handleFetchBooks(isTrash = false) {
   return (dispatch: Dispatch) => {
     localforage.getItem("books", async (err, value) => {
@@ -86,7 +86,7 @@ export function handleFetchBooks(isTrash = false) {
 }
 export function handleFetchBookSortCode() {
   return (dispatch: Dispatch) => {
-    let bookSortCode = OtherUtil.getBookSortCode();
+    let bookSortCode = SortUtil.getBookSortCode();
     dispatch(handleBookSortCode(bookSortCode));
   };
 }
@@ -102,11 +102,12 @@ const handleKeyRemove = (items: any[], arr: string[]) => {
   if (!arr[0]) {
     return items;
   }
-  for (let i = 0; i < items.length; i++) {
-    if (arr.indexOf(items[i].key) === -1) {
-      itemArr.push(items[i]);
+  for (let item of items) {
+    if (arr.indexOf(item.key) === -1) {
+      itemArr.push(item);
     }
   }
+
   return itemArr;
 };
 const handleKeyFilter = (items: any[], arr: string[]) => {
@@ -114,9 +115,9 @@ const handleKeyFilter = (items: any[], arr: string[]) => {
     return [];
   }
   let itemArr: any[] = [];
-  for (let i = 0; i < items.length; i++) {
-    if (arr.indexOf(items[i].key) > -1) {
-      itemArr.push(items[i]);
+  for (let item of items) {
+    if (arr.indexOf(item.key) > -1) {
+      itemArr.push(item);
     }
   }
   return itemArr;

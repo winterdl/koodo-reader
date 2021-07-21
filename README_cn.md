@@ -4,8 +4,8 @@
 
 </div>
 
-<div align="center" width="128px" height="128px">
-<img src="https://i.loli.net/2020/04/26/wrO8EPokvUQWaf5.png" />
+<div align="center">
+<img src="./assets/icons/256x256.png" width="96px" height="96px"/>
 </div>
 
 <h1 align="center">
@@ -16,66 +16,55 @@
 </h3>
 <div align="center">
 
-[下载](https://koodo.960960.xyz/download) | [官网](https://koodo.960960.xyz)
+[下载](https://koodo.960960.xyz/download) | [官网](https://koodo.960960.xyz) | [反馈](https://koodo.960960.xyz/support) | [文档](https://www.notion.so/troyeguo/e9c4e5755d564b0db6340eeba6d9ece9?v=7c8fcbed9adf4592ada95cfd593868c9) | [计划](https://www.notion.so/troyeguo/215baeda57804fd29dbb0e91d1e6a021?v=360c00183d944b598668f34c255edfd7)
 
-</div>
-
-<div align="center">
-  <a href="https://github.com/troyeguo/koodo-reader/releases/latest">
-    <img src="https://img.shields.io/github/release/troyeguo/koodo-reader.svg?style=flat-square" alt="">
-  </a>
-
-  <a href="https://github.com/troyeguo/koodo-reader/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/troyeguo/koodo-reader.svg?style=flat-square" alt="">
-  </a>
 </div>
 
 ## 预览
 
 <div align="center">
   <a href="https://github.com/troyeguo/koodo-reader/releases/latest">
-    <img src="https://i.loli.net/2020/07/18/5NhQZfxXRs8VO7c.png" >
-  </a>
-  <a href="https://github.com/troyeguo/koodo-reader/releases/latest">
-    <img src="https://i.loli.net/2020/07/18/QHGNJStXsiLTvf3.png" >
+    <img src="./assets/demo.png" >
   </a>
   <br/>
 </div>
 
 ## 特色
 
-支持阅读 **epub** , **pdf**, **mobi**, **azw3** 和 **txt** 格式的图书
+- 支持阅读 **epub**, **pdf**, **mobi**, **azw3**, **txt**, **md**, **djvu**, **docx**, **rtf**, **cbz**, **cbr**, **cbt**, **fb2**, **html** 和 **xml** 格式的图书
 
-支持 **Windows** ， **macOS**， **Linux** 和 **网页版**
+- 支持 **Windows**，**macOS**，**Linux** 和 **网页版**
 
-备份数据到 **Dropbox** 和 **Webdav**
+- 备份数据到 **Dropbox** 和 **Webdav**
 
-自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步
+- 自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步
 
-双页模式，单页模式，滚动模式
+- 双页模式，单页模式，滚动模式
 
-听书功能，翻译功能
+- 听书功能，翻译功能，触控屏支持，批量导入图书
 
-目录，书签，笔记，书摘，书架，标签
+- 支持目录，书签，笔记，书摘，书架，标签
 
-自定义字体，字体大小，行间距，阅读背景色，文字颜色
+- 自定义字体，字体大小，行间距，段落间距，阅读背景色，文字颜色，屏幕亮度，文字下划线、斜体、文字阴影、字体粗细
 
-触控屏手势支持
-
-黑夜模式和主题色
-
-文字高亮和下划线标记
+- 黑夜模式和主题色设置
 
 ## 使用方法
 
-桌面端：[Github](https://github.com/troyeguo/koodo-reader/releases/latest) | [蓝奏云](https://wwa.lanzous.com/b0c90cieb) 密码：1234 | [历史版本](https://wwa.lanzous.com/b0c97tupi) 密码：1234
+- 桌面端：[Github](https://github.com/troyeguo/koodo-reader/releases/latest) | [蓝奏云](https://wwa.lanzoui.com/b0c90cieb) 密码：1234 | [历史版本](https://wwa.lanzoui.com/b0c97tupi) 密码：1234
 
-网页版：[前往](https://reader.960960.xyz) (可能需要科学上网)
+- 网页版：[前往](https://reader.960960.xyz)
 
-使用 [Homebrew](https://brew.sh/) 安装：
+- 使用 [Homebrew](https://brew.sh/) 安装：
 
 ```shell
 brew install --cask koodo-reader
+```
+
+- 使用 Docker 安装：
+
+```bash
+docker-compose up -d
 ```
 
 ## 运行源码
@@ -101,14 +90,6 @@ brew install --cask koodo-reader
    yarn
    yarn start
    ```
-
-## Docker
-
-可以使用 `docker compose` 运行本项目
-
-```bash
-docker-compose up -d
-```
 
 ## 贡献
 

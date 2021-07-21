@@ -36,12 +36,6 @@ class OperationPanel extends React.Component<
     this.speed = 30000;
   }
   componentDidMount() {
-    window.addEventListener("resize", () => {
-      if (window.screenLeft !== 0 || window.screenTop !== 0) {
-        this.setState({ isFullScreen: false });
-        OtherUtil.setReaderConfig("isFullScreen", "no");
-      }
-    });
     window.onbeforeunload = () => {
       this.handleExit();
     };
@@ -169,13 +163,11 @@ class OperationPanel extends React.Component<
   // 点击退出按钮的处理程序
   handleExit() {
     OtherUtil.setReaderConfig("isFullScreen", "no");
-    window.speechSynthesis && window.speechSynthesis.cancel();
-    if (this.state.isFullScreen) {
-      this.handleExitFullScreen();
-    }
-    this.props.handleReadingState(false);
-    this.props.handleSearch(false);
-    this.props.handleOpenMenu(false);
+    // window.speechSynthesis && window.speechSynthesis.cancel();
+    // this.handleExitFullScreen();
+    // this.props.handleReadingState(false);
+    // this.props.handleSearch(false);
+    // this.props.handleOpenMenu(false);
     ReadingTime.setTime(this.props.currentBook.key, this.props.time);
     OtherUtil.setReaderConfig("windowWidth", document.body.clientWidth);
     OtherUtil.setReaderConfig("windowHeight", document.body.clientHeight);
@@ -238,7 +230,12 @@ class OperationPanel extends React.Component<
         <div
           className="add-bookmark-button"
           onClick={() => {
-            this.handleAddBookmark();
+            if (this.props.currentEpub.rendition) {
+              this.handleAddBookmark();
+            } else {
+              this.props.handleMessage("Not supported yet");
+              this.props.handleMessageBox(true);
+            }
           }}
         >
           <span className="icon-add add-bookmark-icon"></span>

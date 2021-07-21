@@ -9,6 +9,7 @@ import OtherUtil from "../../../utils/otherUtil";
 import { Panel as ColorPickerPanel } from "rc-color-picker";
 import "rc-color-picker/assets/index.css";
 import ThemeUtil from "../../../utils/readUtils/themeUtil";
+import { Tooltip } from "react-tippy";
 
 class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
   constructor(props: ThemeListProps) {
@@ -39,29 +40,41 @@ class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
     this.setState({
       currentBackgroundIndex: index,
     });
-    if (index === 3) {
-      this.props.currentEpub.rendition.themes.default({
-        "a, article, cite, code, div, li, p, pre, span, table": {
-          color: `white !important`,
-        },
-      });
+    if (index === 1) {
+      this.props.currentEpub.rendition &&
+        this.props.currentEpub.rendition.themes.default({
+          "a, article, cite, code, div, li, p, pre, span, table": {
+            color: `white !important`,
+          },
+        });
+      OtherUtil.setReaderConfig("textColor", "rgba(255,255,255,1)");
     } else if (
-      index === 2 &&
+      index === 0 &&
       OtherUtil.getReaderConfig("backgroundColor") === "rgba(255,255,255,1)"
     ) {
-      this.props.currentEpub.rendition.themes.default({
-        "a, article, cite, code, div, li, p, pre, span, table": {
-          color: `black !important`,
-        },
-      });
+      this.props.currentEpub.rendition &&
+        this.props.currentEpub.rendition.themes.default({
+          "a, article, cite, code, div, li, p, pre, span, table": {
+            color: `black !important`,
+          },
+        });
+      OtherUtil.setReaderConfig("textColor", "rgba(0,0,0,1)");
     } else {
-      this.props.currentEpub.rendition.themes.default({
-        "a, article, cite, code, div, li, p, pre, span, table": {
-          color: `inherit !important`,
-        },
-      });
+      this.props.currentEpub.rendition &&
+        this.props.currentEpub.rendition.themes.default({
+          "a, article, cite, code, div, li, p, pre, span, table": {
+            color: `inherit !important`,
+          },
+        });
     }
-    StyleUtil.addDefaultCss();
+    if (!this.props.currentEpub.rendition) {
+      this.handleRest();
+    } else {
+      StyleUtil.addDefaultCss();
+    }
+  };
+  handleRest = () => {
+    this.props.renderFunc();
   };
   handleChooseBgColor = (color) => {
     OtherUtil.setReaderConfig("backgroundColor", color.color);
@@ -107,11 +120,15 @@ class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
       "textColor",
       typeof color === "object" ? color.color : color
     );
-    this.props.currentEpub.rendition.themes.default({
-      "a, article, cite, code, div, li, p, pre, span, table": {
-        color: `${typeof color === "object" ? color.color : color} !important`,
-      },
-    });
+    this.props.currentEpub.rendition &&
+      this.props.currentEpub.rendition.themes.default({
+        "a, article, cite, code, div, li, p, pre, span, table": {
+          color: `${
+            typeof color === "object" ? color.color : color
+          } !important`,
+        },
+      });
+    this.handleRest();
   };
   render() {
     const renderBackgroundColorList = () => {
@@ -176,21 +193,32 @@ class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
           <Trans>Background Color</Trans>
         </div>
         <ul className="background-color-list">
-          <li
-            className="background-color-circle"
-            onClick={() => {
-              this.handleColorBgPicker(!this.state.isShowBgPicker);
-            }}
+          <Tooltip
+            title={this.props.t("Customize")}
+            position="top"
+            trigger="mouseenter"
+            style={{ display: "inline-block" }}
           >
-            <span className="icon-more"></span>
-          </li>
+            <li
+              className="background-color-circle"
+              onClick={() => {
+                this.handleColorBgPicker(!this.state.isShowBgPicker);
+              }}
+            >
+              <span
+                className={
+                  this.state.isShowBgPicker ? "icon-check" : "icon-more"
+                }
+              ></span>
+            </li>
+          </Tooltip>
 
           {renderBackgroundColorList()}
         </ul>
         {this.state.isShowBgPicker && (
           <ColorPickerPanel
             enableAlpha={false}
-            color={"#345679"}
+            color={OtherUtil.getReaderConfig("backgroundColor")}
             onChange={this.handleChooseBgColor}
             mode="RGB"
             style={{
@@ -203,21 +231,32 @@ class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
           <Trans>Text Color</Trans>
         </div>
         <ul className="background-color-list">
-          <li
-            className="background-color-circle"
-            onClick={() => {
-              this.handleColorTextPicker(!this.state.isShowTextPicker);
-            }}
+          <Tooltip
+            title={this.props.t("Customize")}
+            position="top"
+            trigger="mouseenter"
+            style={{ display: "inline-block" }}
           >
-            <span className="icon-more"></span>
-          </li>
+            <li
+              className="background-color-circle"
+              onClick={() => {
+                this.handleColorTextPicker(!this.state.isShowTextPicker);
+              }}
+            >
+              <span
+                className={
+                  this.state.isShowTextPicker ? "icon-check" : "icon-more"
+                }
+              ></span>
+            </li>
+          </Tooltip>
 
           {renderTextColorList()}
         </ul>
         {this.state.isShowTextPicker && (
           <ColorPickerPanel
             enableAlpha={false}
-            color={"#345679"}
+            color={OtherUtil.getReaderConfig("textColor")}
             onChange={this.handleChooseTextColor}
             mode="RGB"
             style={{

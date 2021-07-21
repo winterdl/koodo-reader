@@ -32,7 +32,7 @@ class TextToSpeech extends React.Component<
       this.setState({ isAudioOn: false });
     } else {
       const setSpeech = () => {
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           let synth = window.speechSynthesis;
           let id;
 
@@ -40,6 +40,8 @@ class TextToSpeech extends React.Component<
             if (synth.getVoices().length !== 0) {
               resolve(synth.getVoices());
               clearInterval(id);
+            } else {
+              this.setState({ isSupported: false });
             }
           }, 10);
         });
@@ -103,6 +105,10 @@ class TextToSpeech extends React.Component<
     msg.voice = window.speechSynthesis.getVoices()[voiceIndex];
     msg.rate = speed;
     window.speechSynthesis.speak(msg);
+    msg.onerror = (err) => {
+      console.log(err);
+    };
+
     msg.onend = (event) => {
       if (!(this.state.isAudioOn && this.props.isReading)) {
         return;
@@ -134,11 +140,9 @@ class TextToSpeech extends React.Component<
                   }
                 }}
                 style={
-                  this.props.locations
-                    ? this.state.isAudioOn
-                      ? { background: "rgba(46, 170, 220)" }
-                      : {}
-                    : { opacity: 0.5 }
+                  this.props.locations && this.state.isAudioOn
+                    ? {}
+                    : { opacity: 0.6 }
                 }
               >
                 <span

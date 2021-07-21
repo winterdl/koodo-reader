@@ -9,7 +9,7 @@ import ReaderSwitch from "../../../components/readerSettings/settingSwitch";
 import { SettingPanelProps, SettingPanelState } from "./interface";
 import { Trans } from "react-i18next";
 import OtherUtil from "../../../utils/otherUtil";
-import { isMobile } from "react-device-detect";
+import { Tooltip } from "react-tippy";
 
 class SettingPanel extends React.Component<
   SettingPanelProps,
@@ -36,44 +36,53 @@ class SettingPanel extends React.Component<
   render() {
     return (
       <div className="setting-panel-parent">
-        <span
-          className={
-            this.state.isSettingLocked
-              ? "icon-lock lock-icon"
-              : "icon-unlock lock-icon"
-          }
-          onClick={() => {
-            this.handleLock();
-          }}
-        ></span>
+        <Tooltip
+          title={this.props.t(this.state.isSettingLocked ? "Unlock" : "Lock")}
+          position="bottom"
+          trigger="mouseenter"
+          style={{ height: "30px", display: "inline-block", float: "left" }}
+        >
+          <span
+            className={
+              this.state.isSettingLocked
+                ? "icon-lock lock-icon"
+                : "icon-unlock lock-icon"
+            }
+            onClick={() => {
+              this.handleLock();
+            }}
+          ></span>
+        </Tooltip>
         <div className="setting-panel-title">
           <Trans>Reading Option</Trans>
         </div>
         <div className="setting-panel">
-          {!isMobile && <ModeControl />}
+          {Object.keys(this.props.currentEpub).length !== 0 && <ModeControl />}
           <ThemeList />
           <SliderList
             {...{
-              maxValue: 31,
+              maxValue: 40,
               minValue: 13,
               mode: "fontSize",
               minLabel: "13",
-              maxLabel: "31",
+              maxLabel: "40",
               step: 1,
               title: "Font Size",
             }}
           />
-          <SliderList
-            {...{
-              maxValue: 80,
-              minValue: 0,
-              mode: "margin",
-              minLabel: "0",
-              maxLabel: "100",
-              step: 5,
-              title: "Margin",
-            }}
-          />
+          {Object.keys(this.props.currentEpub).length !== 0 && (
+            <SliderList
+              {...{
+                maxValue: 80,
+                minValue: 0,
+                mode: "margin",
+                minLabel: "0",
+                maxLabel: "100",
+                step: 5,
+                title: "Margin",
+              }}
+            />
+          )}
           <SliderList
             {...{
               maxValue: 20,
@@ -85,30 +94,44 @@ class SettingPanel extends React.Component<
               title: "Letter Spacing",
             }}
           />
-          <SliderList
-            {...{
-              maxValue: 40,
-              minValue: 0,
-              mode: "paraSpacing",
-              minLabel: "0",
-              maxLabel: "40",
-              step: 1,
-              title: "Paragraph Spacing",
-            }}
-          />
-          {this.state.readerMode && this.state.readerMode !== "double" ? (
+          {Object.keys(this.props.currentEpub).length !== 0 && (
             <SliderList
               {...{
-                maxValue: 2,
-                minValue: 1,
+                maxValue: 60,
+                minValue: 0,
+                mode: "paraSpacing",
+                minLabel: "0",
+                maxLabel: "60",
+                step: 1,
+                title: "Paragraph Spacing",
+              }}
+            />
+          )}
+          {(this.state.readerMode && this.state.readerMode !== "double") ||
+          !this.props.currentEpub.archived ? (
+            <SliderList
+              {...{
+                maxValue: 3,
+                minValue: 0.5,
                 mode: "scale",
-                minLabel: "1",
-                maxLabel: "2",
-                step: 0.2,
+                minLabel: "0.5",
+                maxLabel: "3",
+                step: 0.1,
                 title: "Scale",
               }}
             />
           ) : null}
+          <SliderList
+            {...{
+              maxValue: 2,
+              minValue: 0.5,
+              mode: "brightness",
+              minLabel: "0.5",
+              maxLabel: "2",
+              step: 0.1,
+              title: "Brightness",
+            }}
+          />
           <DropdownList />
           <ReaderSwitch />
         </div>

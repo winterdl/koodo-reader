@@ -10,6 +10,7 @@ import { backupPage } from "./reducers/backupPage";
 import BookModel from "../model/Book";
 import NoteModel from "../model/Note";
 import BookmarkModel from "../model/Bookmark";
+import HtmlBookModel from "../model/HtmlBook";
 const rootReducer = combineReducers({
   book,
   manager,
@@ -42,11 +43,13 @@ export type stateType = {
     isAboutOpen: boolean;
     isShowLoading: boolean;
     isShowNew: boolean;
-    isDownloadDesk: boolean;
+    isNewWarning: boolean;
+    isTipDialog: boolean;
     bookSortCode: { sort: number; order: number };
     noteSortCode: { sort: number; order: number };
     isMessage: boolean;
     message: string;
+    tip: string;
   };
   book: {
     isOpenEditDialog: boolean;
@@ -57,6 +60,7 @@ export type stateType = {
     dragItem: string;
     currentBook: BookModel;
     currentEpub: any;
+    renderFunc: () => void;
   };
   backupPage: {
     isBackup: boolean;
@@ -75,6 +79,7 @@ export type stateType = {
     flattenChapters: any;
     noteKey: string;
     originalText: string;
+    htmlBook: HtmlBookModel;
   };
   sidebar: {
     mode: string;

@@ -1,4 +1,4 @@
-import OtherUtil from "../../utils/otherUtil";
+import SortUtil from "../../utils/readUtils/sortUtil";
 const initState = {
   books: null,
   deletedBooks: [],
@@ -11,12 +11,14 @@ const initState = {
   viewMode: "card",
   isSortDisplay: false,
   isShowLoading: false,
-  isDownloadDesk: false,
+  isNewWarning: false,
+  isTipDialog: false,
   isShowNew: false,
   bookSortCode: { sort: 0, order: 1 },
-  noteSortCode: OtherUtil.getNoteSortCode(),
+  noteSortCode: SortUtil.getNoteSortCode(),
   isMessage: false,
   message: "Add Successfully",
+  tip: "",
 };
 export function manager(
   state = initState,
@@ -38,10 +40,15 @@ export function manager(
         ...state,
         searchResults: action.payload,
       };
-    case "HANDLE_DOWNLOAD_DESK":
+    case "HANDLE_TIP_DIALOG":
       return {
         ...state,
-        isDownloadDesk: action.payload,
+        isTipDialog: action.payload,
+      };
+    case "HANDLE_TIP":
+      return {
+        ...state,
+        tip: action.payload,
       };
     case "HANDLE_SEARCH":
       return {
@@ -89,6 +96,11 @@ export function manager(
       return {
         ...state,
         isShowNew: action.payload,
+      };
+    case "HANDLE_NEW_WARNING":
+      return {
+        ...state,
+        isNewWarning: action.payload,
       };
     case "HANDLE_MESSAGE":
       return {

@@ -1,4 +1,4 @@
-//我的书摘页面
+//我的高亮页面
 import React from "react";
 import "./digestList.css";
 import { DigestListProps, DigestListStates } from "./interface";
@@ -76,7 +76,7 @@ class DigestList extends React.Component<DigestListProps, DigestListStates> {
               zIndex: -1,
             }}
           >
-            <Empty />
+            {this.state.tag.length === 0 && <Empty />}
           </div>
         ) : (
           <CardList {...noteProps} />

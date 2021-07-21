@@ -1,5 +1,9 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, Menu, remote, ipcMain } = require("electron");
+const { ebtMain } = require("electron-baidu-tongji");
+const path = require("path");
+const isDev = require("electron-is-dev");
 let mainWin;
+let readerWindow;
 const singleInstance = app.requestSingleInstanceLock();
 var filePath = null;
 if (process.platform == "win32" && process.argv.length >= 2) {
@@ -17,7 +21,7 @@ if (!singleInstance) {
   });
 }
 app.on("ready", () => {
-  mainWin = new BrowserWindow({
+  let option = {
     width: 1050,
     height: 660,
     webPreferences: {
@@ -28,78 +32,89 @@ app.on("ready", () => {
       nodeIntegrationInSubFrames: true,
       allowRunningInsecureContent: true,
     },
-  });
-  const isDev = require("electron-is-dev");
+  };
+
+  mainWin = new BrowserWindow(option);
+
   if (!isDev) {
-    const { Menu } = require("electron");
     Menu.setApplicationMenu(null);
   }
-  const path = require("path");
+
   const urlLocation = isDev
     ? "http://localhost:3000"
     : `file://${path.join(__dirname, "./build/index.html")}`;
 
   mainWin.loadURL(urlLocation);
-  const { remote, ipcMain } = require("electron");
-  mainWin.webContents.on(
-    "new-window",
-    (event, url, frameName, disposition, options, additionalFeatures) => {
-      event.preventDefault();
-      if (url.indexOf("full") > -1) {
-        Object.assign(options, {
-          parent: mainWin,
-          width: 1050,
-          height: 660,
-        });
-        event.newGuest = new BrowserWindow(options);
-        event.newGuest.maximize();
-      } else {
-        var urlParams;
 
-        var match,
-          pl = /\+/g,
-          search = /([^&=]+)=?([^&]*)/g,
-          decode = function (s) {
-            return decodeURIComponent(s.replace(pl, " "));
-          },
-          query = url.split("?").reverse()[0];
-
-        urlParams = {};
-        while ((match = search.exec(query)))
-          urlParams[decode(match[1])] = decode(match[2]);
-        Object.assign(options, {
-          parent: mainWin,
-          width: parseInt(urlParams.width),
-          height: parseInt(urlParams.height),
-          x: parseInt(urlParams.x),
-          y: parseInt(urlParams.y),
-        });
-        event.newGuest = new BrowserWindow(options);
-      }
-      mainWin &&
-        mainWin.on("minimize", () => {
-          event.newGuest && event.newGuest.show();
-        });
-
-      event.newGuest.on("close", () => {
-        event.newGuest = null;
-      });
-    }
-  );
+  ebtMain(ipcMain, isDev);
   mainWin.on("close", () => {
     mainWin = null;
   });
 
-  ipcMain.on("fonts-ready", (event, arg) => {
-    const fontList = require("font-list");
-    fontList
-      .getFonts()
-      .then((fonts) => {
-        event.returnValue = fonts;
-      })
-      .catch((err) => {
-        console.log(err);
+  ipcMain.on("open-book", (event, arg) => {
+    let url = arg;
+
+    let options = {
+      webPreferences: {
+        webSecurity: false,
+        nodeIntegration: true,
+        nativeWindowOpen: true,
+        enableRemoteModule: true,
+        nodeIntegrationInSubFrames: true,
+        allowRunningInsecureContent: true,
+      },
+    };
+    let pdfLocation = isDev
+      ? "http://localhost:3000/" + url
+      : `file://${path.join(
+          __dirname,
+          "./build",
+          "lib",
+          "pdf",
+          "web",
+          "viewer.html"
+        )}?${url.split("?")[1]}`;
+
+    if (url.indexOf("full") > -1) {
+      Object.assign(options, {
+        width: 1050,
+        height: 660,
       });
+      readerWindow = new BrowserWindow(options);
+      readerWindow.loadURL(url.indexOf("pdf") > -1 ? pdfLocation : url);
+      readerWindow.maximize();
+    } else {
+      var urlParams;
+
+      var match,
+        pl = /\+/g,
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) {
+          return decodeURIComponent(s.replace(pl, " "));
+        },
+        query = url.split("?").reverse()[0];
+      urlParams = {};
+      while ((match = search.exec(query)))
+        urlParams[decode(match[1])] = decode(match[2]);
+      Object.assign(options, {
+        width: parseInt(urlParams.width),
+        height: parseInt(urlParams.height),
+        x: parseInt(urlParams.x),
+        y: parseInt(urlParams.y),
+      });
+      readerWindow = new BrowserWindow(options);
+      readerWindow.loadURL(url.indexOf("pdf") > -1 ? pdfLocation : url);
+    }
+    readerWindow.on("close", () => {
+      readerWindow.destroy();
+      readerWindow = null;
+    });
+    event.returnValue = "success";
+  });
+  ipcMain.handle("fonts-ready", async (event, arg) => {
+    const fontList = require("font-list");
+    const fonts = await fontList.getFonts({ disableQuoting: true });
+    return fonts;
   });
 
   ipcMain.on("storage-location", (event, arg) => {

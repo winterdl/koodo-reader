@@ -3,17 +3,12 @@ import {
   handleFetchBooks,
   handleMessageBox,
   handleMessage,
-} from "../../../store/actions/manager";
-import {
   handleDeleteDialog,
   handleActionDialog,
-} from "../../../store/actions/book";
-import {
   handleFetchBookmarks,
   handleFetchNotes,
-} from "../../../store/actions/reader";
+} from "../../../store/actions";
 import { stateType } from "../../../store";
-import { withNamespaces } from "react-i18next";
 import DeleteDialog from "./component";
 
 const mapStateToProps = (state: stateType) => {
@@ -37,7 +32,4 @@ const actionCreator = {
   handleMessage,
   handleActionDialog,
 };
-export default connect(
-  mapStateToProps,
-  actionCreator
-)(withNamespaces()(DeleteDialog as any));
+export default connect(mapStateToProps, actionCreator)(DeleteDialog);

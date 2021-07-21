@@ -11,8 +11,8 @@ export const settingList = [
   },
   {
     isElectron: true,
-    title: "Remember window's size from last read",
-    propName: "isRememberSize",
+    title: "Auto open book in fullscreen",
+    propName: "isAutoFullscreen",
   },
   {
     isElectron: false,
@@ -26,7 +26,12 @@ export const settingList = [
   },
   {
     isElectron: false,
-    title: "Turn on dark mode",
+    title: "Disable analytics service",
+    propName: "isDisableAnalytics",
+  },
+  {
+    isElectron: false,
+    title: "Turn on night mode",
     propName: "isDisplayDark",
   },
 ];
@@ -62,6 +67,10 @@ export const readerSettingList = [
     propName: "isShadow",
   },
   {
+    title: "Invert color",
+    propName: "isInvert",
+  },
+  {
     title: "Don't show footer",
     propName: "isHideFooter",
   },
@@ -72,5 +81,27 @@ export const readerSettingList = [
   {
     title: "Dont't use mimical background",
     propName: "isUseBackground",
+  },
+  {
+    title: "Hide navigation button",
+    propName: "isHidePageButton",
+  },
+];
+export const htmlSettingList = [
+  {
+    title: "Bold Font",
+    propName: "isBold",
+  },
+  {
+    title: "Italic",
+    propName: "isItalic",
+  },
+  {
+    title: "Text Underline",
+    propName: "isUnderline",
+  },
+  {
+    title: "Text Shadow",
+    propName: "isShadow",
   },
 ];

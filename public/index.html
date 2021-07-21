@@ -20,139 +20,54 @@
         height: 100%;
         width: 100%;
       }
-      .loading-cover {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-      }
-      .logo-container {
-        width: 200px;
-      }
-      .loading-cover img {
-        width: 80px;
-        position: relative;
-        left: 50%;
-        top: 50%;
-        margin-left: -40px;
-        margin-top: -80px;
-      }
-      .cover-spinner {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        margin-left: -15px;
-        margin-top: 40px;
-      }
-      .sk-chase {
-        width: 30px;
-        height: 30px;
-        animation: sk-chase 2.5s infinite linear both;
-        z-index: 20;
-      }
-
-      .sk-chase-dot {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        left: 0;
-        top: 0;
-        animation: sk-chase-dot 2s infinite ease-in-out both;
-      }
-
-      .sk-chase-dot:before {
-        content: "";
-        display: block;
-        width: 25%;
-        height: 25%;
-        background-color: rgba(75, 75, 75, 1);
-        border-radius: 100%;
-        animation: sk-chase-dot-before 2s infinite ease-in-out both;
-      }
-
-      .sk-chase-dot:nth-child(1) {
-        animation-delay: -1.1s;
-      }
-      .sk-chase-dot:nth-child(2) {
-        animation-delay: -1s;
-      }
-      .sk-chase-dot:nth-child(3) {
-        animation-delay: -0.9s;
-      }
-      .sk-chase-dot:nth-child(4) {
-        animation-delay: -0.8s;
-      }
-      .sk-chase-dot:nth-child(5) {
-        animation-delay: -0.7s;
-      }
-      .sk-chase-dot:nth-child(6) {
-        animation-delay: -0.6s;
-      }
-      .sk-chase-dot:nth-child(1):before {
-        animation-delay: -1.1s;
-      }
-      .sk-chase-dot:nth-child(2):before {
-        animation-delay: -1s;
-      }
-      .sk-chase-dot:nth-child(3):before {
-        animation-delay: -0.9s;
-      }
-      .sk-chase-dot:nth-child(4):before {
-        animation-delay: -0.8s;
-      }
-      .sk-chase-dot:nth-child(5):before {
-        animation-delay: -0.7s;
-      }
-      .sk-chase-dot:nth-child(6):before {
-        animation-delay: -0.6s;
-      }
-
-      @keyframes sk-chase {
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes sk-chase-dot {
-        80%,
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes sk-chase-dot-before {
-        50% {
-          transform: scale(0.4);
-        }
-        100%,
-        0% {
-          transform: scale(1);
-        }
-      }
     </style>
     <title>Koodo Reader</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div class="loading-cover">
-      <img src="./favicon.png" alt="logo" class="loading-logo" />
-      <div class="cover-spinner">
-        <div class="sk-chase">
-          <div class="sk-chase-dot"></div>
-          <div class="sk-chase-dot"></div>
-          <div class="sk-chase-dot"></div>
-          <div class="sk-chase-dot"></div>
-          <div class="sk-chase-dot"></div>
-          <div class="sk-chase-dot"></div>
-        </div>
-      </div>
-    </div>
+
     <div id="root"></div>
     <script>
+      const style = document.createElement("link");
+      style.rel = "stylesheet";
+      if (
+        JSON.parse(localStorage.getItem("readerConfig") || "{}")
+          .isDisplayDark === "yes"
+      ) {
+        style.href = "./assets/styles/dark.css";
+      } else {
+        style.href = "./assets/styles/default.css";
+      }
+      document.head.appendChild(style);
+      if (JSON.parse(localStorage.getItem("readerConfig") || "{}").systemFont) {
+        let body = document.getElementsByTagName("body")[0];
+        body.setAttribute(
+          "style",
+          "font-family:" +
+            JSON.parse(localStorage.getItem("readerConfig") || "{}")
+              .systemFont +
+            "!important"
+        );
+      }
+      document.head.appendChild(style);
       if (
         document.location.href.indexOf("epub") > -1 ||
-        document.location.href.indexOf("pdf") > -1
+        document.location.href.indexOf("pdf") > -1 ||
+        document.location.href.indexOf("mobi") > -1 ||
+        document.location.href.indexOf("txt") > -1 ||
+        document.location.href.indexOf("djvu") > -1 ||
+        document.location.href.indexOf("rtf") > -1 ||
+        document.location.href.indexOf("docx") > -1 ||
+        document.location.href.indexOf("fb2") > -1 ||
+        document.location.href.indexOf("cbr") > -1 ||
+        document.location.href.indexOf("cbt") > -1 ||
+        document.location.href.indexOf("cbz") > -1 ||
+        document.location.href.indexOf("md") > -1 ||
+        document.location.href.indexOf("html") > -1 ||
+        document.location.href.indexOf("htm") > -1 ||
+        document.location.href.indexOf("xml") > -1 ||
+        document.location.href.indexOf("xhtml") > -1 ||
+        document.location.href.indexOf("azw3") > -1
       ) {
         let coverLoading = document.querySelector(".loading-cover");
         coverLoading && coverLoading.parentNode.removeChild(coverLoading);
@@ -198,5 +113,36 @@
       type="text/javascript"
       src="%PUBLIC_URL%/lib/Hammer/hammer.min.js"
     ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/unrar/unrar.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/djvu/djvu.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/djvu/djvu_viewer.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/mammoth/mammoth.browser.min.js"
+    ></script>
+    <script>
+      var _hmt = _hmt || [];
+      (function () {
+        if (
+          JSON.parse(localStorage.getItem("readerConfig") || "{}")
+            .isDisableAnalytics !== "yes"
+        ) {
+          var hm = document.createElement("script");
+          hm.src =
+            "https://hm.baidu.com/hm.js?358570be1bfc40e01db43adefade5ad5";
+          var s = document.getElementsByTagName("script")[0];
+          s.parentNode.insertBefore(hm, s);
+        }
+      })();
+    </script>
   </body>
 </html>

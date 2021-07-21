@@ -1,4 +1,4 @@
-//我的书摘页面
+//我的高亮页面
 import React from "react";
 import "./deleteIcon.css";
 import { DeleteIconProps, DeleteIconStates } from "./interface";
@@ -58,10 +58,6 @@ class DeleteIcon extends React.Component<DeleteIconProps, DeleteIconStates> {
         }
       }
     });
-    // if (this.props.isReading && this.props.mode === "notes") {
-    //   this.props.renderHighlighters();
-    //   this.props.handleShowDelete("");
-    // }
   };
   handleDeletePopup = (isOpenDelete: boolean) => {
     this.setState({ isOpenDelete });

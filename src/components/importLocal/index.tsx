@@ -6,11 +6,10 @@ import {
   handleMessage,
   handleFetchBooks,
   handleLoadingDialog,
-  handleDownloadDesk,
-} from "../../store/actions/manager";
-import { handleReadingBook } from "../../store/actions/book";
+} from "../../store/actions";
+import { handleReadingBook } from "../../store/actions";
 import { stateType } from "../../store";
-import { withNamespaces } from "react-i18next";
+import { withTranslation } from "react-i18next";
 import ImportLocal from "./component";
 
 const mapStateToProps = (state: stateType) => {
@@ -28,9 +27,8 @@ const actionCreator = {
   handleFetchBooks,
   handleReadingBook,
   handleLoadingDialog,
-  handleDownloadDesk,
 };
 export default connect(
   mapStateToProps,
   actionCreator
-)(withNamespaces()(ImportLocal as any));
+)(withTranslation()(ImportLocal as any));

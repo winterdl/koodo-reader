@@ -24,7 +24,7 @@ class ActionDialog extends React.Component<ActionDialogProps> {
     this.props.handleReadingBook(this.props.currentBook);
     this.props.handleActionDialog(false);
   };
-  handleResoreBook = () => {
+  handleRestoreBook = () => {
     AddTrash.clear(this.props.currentBook.key);
     this.props.handleActionDialog(false);
     this.props.handleMessage("Restore Successfully");
@@ -49,7 +49,7 @@ class ActionDialog extends React.Component<ActionDialogProps> {
             <div
               className="action-dialog-add"
               onClick={() => {
-                this.handleResoreBook();
+                this.handleRestoreBook();
               }}
             >
               <span className="icon-clockwise view-icon"></span>
@@ -118,11 +118,7 @@ class ActionDialog extends React.Component<ActionDialogProps> {
                   FileSaver.saveAs(
                     new Blob([result]),
                     this.props.currentBook.name +
-                      `${
-                        this.props.currentBook.description === "pdf"
-                          ? ".pdf"
-                          : ".epub"
-                      }`
+                      `.${this.props.currentBook.format.toLocaleLowerCase()}`
                   );
                 });
             }}
@@ -160,6 +156,21 @@ class ActionDialog extends React.Component<ActionDialogProps> {
             </p>
           </div>
           <div>
+            <p className="action-dialog-book-publisher">
+              <Trans>File size</Trans>:
+            </p>
+            <p className="action-dialog-book-title">
+              {this.props.currentBook.size
+                ? this.props.currentBook.size / 1024 / 1024 > 1
+                  ? parseFloat(
+                      this.props.currentBook.size / 1024 / 1024 + ""
+                    ).toFixed(2) + "Mb"
+                  : parseInt(this.props.currentBook.size / 1024 + "") + "Kb"
+                : // eslint-disable-next-line
+                  "0" + "Kb"}
+            </p>
+          </div>
+          <div>
             <p className="action-dialog-book-added">
               <Trans>Added at</Trans>:
             </p>
@@ -177,7 +188,7 @@ class ActionDialog extends React.Component<ActionDialogProps> {
               {ShelfUtil.getBookPosition(this.props.currentBook.key).map(
                 (item) => (
                   <>
-                    <Trans>{item}</Trans>&nbsp;
+                    #<Trans>{item}</Trans>&nbsp;
                   </>
                 )
               )}

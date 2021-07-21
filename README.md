@@ -4,8 +4,8 @@
 
 </div>
 
-<div align="center" width="128px" height="128px">
-<img src="https://i.loli.net/2020/04/26/wrO8EPokvUQWaf5.png" />
+<div align="center" >
+<img src="./assets/icons/256x256.png" width="96px" height="96px"/>
 </div>
 
 <h1 align="center">
@@ -16,66 +16,59 @@
 </h3>
 <div align="center">
 
-[Download](https://koodo.960960.xyz/download) | [Website](https://koodo.960960.xyz)
+[Download](https://koodo.960960.xyz/download) | [Website](https://koodo.960960.xyz) | [Feedback](https://koodo.960960.xyz/support) | [Document](https://www.notion.so/troyeguo/01aaa516687c418499f713d34793b9ad?v=54d51fe1688a4f8ab5784b17e4df3308) | [Roadmap](https://www.notion.so/troyeguo/d1c19a132932465bae1d89dd963c92ea?v=ca8aa69cf25849c18c92b92ba868663b)
 
-</div>
-
-<div align="center">
-  <a href="https://github.com/troyeguo/koodo-reader/releases/latest">
-    <img src="https://img.shields.io/github/release/troyeguo/koodo-reader.svg?style=flat-square" alt="">
-  </a>
-
-  <a href="https://github.com/troyeguo/koodo-reader/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/troyeguo/koodo-reader.svg?style=flat-square" alt="">
-  </a>
 </div>
 
 ## Preview
 
 <div align="center">
   <a href="https://github.com/troyeguo/koodo-reader/releases/latest">
-    <img src="https://i.loli.net/2021/02/13/JkIpcnlqNAW5bEy.png" >
-  </a>
-  <a href="https://github.com/troyeguo/koodo-reader/releases/latest">
-    <img src="https://i.loli.net/2021/02/13/nZxD7yOvw39BJNA.png" >
+    <img src="./assets/demo.png" >
   </a>
   <br/>
 </div>
 
 ## Feature
 
-Format support: **epub** , **pdf**, **mobi**, **azw3**, and **txt**
+- Format support: **epub**, **pdf**, **mobi**, **azw3**, **txt**, **md**, **djvu**, **docx**, **rtf**, **cbz**, **cbr**, **cbt**, **fb2**, **html** and **xml**
 
-Platform support: **Windows** , **macOS**, **Linux** and **Web**
+- Platform support: **Windows** , **macOS**, **Linux** and **Web**
 
-Save your data to **Dropbox** or **Webdav**
+- Save your data to **Dropbox** or **Webdav**
 
-Customize the source folder and synchronize multiple devices using OneDrive, iCloud, Dropbox, etc.
+- Customize the source folder and synchronize among multiple devices using OneDrive, iCloud, Dropbox, etc.
 
-Single-column, two-column, or continuous scrolling layouts
+- Single-column, two-column, or continuous scrolling layouts
 
-Text-to-speech, Translation
+- Text-to-speech, translation, progress slider, touch screen support, batch import
 
-Bookmark, Note, Digest, Shelf and Tag
+- Add bookmarks, notes, highlights to your books
 
-Adjust font, line-spacing, background color, text color and margins
+- Origanize your books and notes with shelf and tag
 
-Support for Touch Screen
+- Adjust font size, font family, line-spacing, paragraph spacing, background color, text color, margins, and brightness
 
-Night mode and Theme color
+- Night mode and theme color
 
-Text highlight, underline, Italic and shadow
+- Text highlight, underline, boldness, italics and shadow
 
 ## Installation
 
-Desktop Version: [Download](https://koodo.960960.xyz/download)
+- Desktop Version: [Download](https://koodo.960960.xyz/download)
 
-Web Version：[Preview](https://reader.960960.xyz)
+- Web Version：[Preview](https://reader.960960.xyz)
 
-Install with [Homebrew](https://brew.sh/):
+- Install with [Homebrew](https://brew.sh/):
 
 ```shell
 brew install --cask koodo-reader
+```
+
+- Install with Docker:
+
+```bash
+docker-compose up -d
 ```
 
 ## Develop
@@ -101,14 +94,6 @@ Make sure node's version on your computer is larger than 10.0.0, yarn and git is
    yarn
    yarn start
    ```
-
-## Docker
-
-You can run in docker compose
-
-```bash
-docker-compose up -d
-```
 
 ## Contribution
 

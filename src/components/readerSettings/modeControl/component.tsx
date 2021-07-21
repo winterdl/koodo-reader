@@ -4,6 +4,8 @@ import "./modeControl.css";
 import { ModeControlProps, ModeControlState } from "./interface";
 import OtherUtil from "../../../utils/otherUtil";
 import { Trans } from "react-i18next";
+import { Tooltip } from "react-tippy";
+import { isElectron } from "react-device-detect";
 
 class ModeControl extends React.Component<ModeControlProps, ModeControlState> {
   constructor(props: ModeControlProps) {
@@ -16,7 +18,12 @@ class ModeControl extends React.Component<ModeControlProps, ModeControlState> {
   handleChangeMode = (mode: string) => {
     this.setState({ readerMode: mode });
     OtherUtil.setReaderConfig("readerMode", mode);
-    window.location.reload();
+    if (isElectron) {
+      this.props.handleMessage("Take effect at next startup");
+      this.props.handleMessageBox(true);
+    } else {
+      window.location.reload();
+    }
   };
   render() {
     return (
@@ -28,36 +35,53 @@ class ModeControl extends React.Component<ModeControlProps, ModeControlState> {
           <Trans>View Mode</Trans>
         </div>
         <div className="single-control-container">
-          <div
-            className="single-mode-container"
-            onClick={() => {
-              this.handleChangeMode("single");
-            }}
-            style={this.state.readerMode === "single" ? {} : { opacity: 0.4 }}
+          <Tooltip
+            title={this.props.t("Single-Page Mode")}
+            position="top"
+            trigger="mouseenter"
           >
-            <span className="icon-single-page single-page-icon"></span>
-          </div>
-          <div
-            className="double-mode-container"
-            onClick={() => {
-              this.handleChangeMode("double");
-            }}
-            style={this.state.readerMode === "double" ? {} : { opacity: 0.4 }}
+            <div
+              className="single-mode-container"
+              onClick={() => {
+                this.handleChangeMode("single");
+              }}
+              style={this.state.readerMode === "single" ? {} : { opacity: 0.4 }}
+            >
+              <span className="icon-single-page single-page-icon"></span>
+            </div>
+          </Tooltip>
+          <Tooltip
+            title={this.props.t("Double-Page Mode")}
+            position="top"
+            trigger="mouseenter"
           >
-            <span className="icon-two-page two-page-icon"></span>
-          </div>
-
-          <div
-            className="double-mode-container"
-            onClick={() => {
-              this.handleChangeMode("continuous");
-            }}
-            style={
-              this.state.readerMode === "continuous" ? {} : { opacity: 0.4 }
-            }
+            <div
+              className="double-mode-container"
+              onClick={() => {
+                this.handleChangeMode("double");
+              }}
+              style={this.state.readerMode === "double" ? {} : { opacity: 0.4 }}
+            >
+              <span className="icon-two-page two-page-icon"></span>
+            </div>
+          </Tooltip>
+          <Tooltip
+            title={this.props.t("Scroll Mode")}
+            position="top"
+            trigger="mouseenter"
           >
-            <span className="icon-scroll two-page-icon"></span>
-          </div>
+            <div
+              className="double-mode-container"
+              onClick={() => {
+                this.handleChangeMode("continuous");
+              }}
+              style={
+                this.state.readerMode === "continuous" ? {} : { opacity: 0.4 }
+              }
+            >
+              <span className="icon-scroll two-page-icon"></span>
+            </div>
+          </Tooltip>
         </div>
       </div>
     );

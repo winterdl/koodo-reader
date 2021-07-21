@@ -3,7 +3,6 @@ import React from "react";
 import "./popupOption.css";
 import localforage from "localforage";
 import Note from "../../../model/Note";
-import { NamespacesConsumer } from "react-i18next";
 import { PopupOptionProps } from "./interface";
 import ColorOption from "../../colorOption";
 import RecordLocation from "../../../utils/readUtils/recordLocation";
@@ -29,7 +28,9 @@ class PopupOption extends React.Component<PopupOptionProps> {
   handleNote = () => {
     this.props.handleChangeDirection(false);
     this.props.handleMenuMode("note");
-
+    this.handleEdge();
+  };
+  handleEdge = () => {
     let popupMenu: any = document.querySelector(".popup-menu-container");
     let posX = popupMenu?.style.left;
     let posY = popupMenu?.style.top;
@@ -57,6 +58,7 @@ class PopupOption extends React.Component<PopupOptionProps> {
   handleTrans = () => {
     this.props.handleMenuMode("trans");
     this.props.handleOriginalText(getSelection() || "");
+    this.handleEdge();
   };
   handleDigest = () => {
     let bookKey = this.props.currentBook.key;
@@ -184,61 +186,57 @@ class PopupOption extends React.Component<PopupOptionProps> {
   render() {
     const renderMenuList = () => {
       return (
-        <NamespacesConsumer>
-          {(t) => (
-            <>
-              <div className="menu-list">
-                {popupList.map((item, index) => {
-                  return (
-                    <div
-                      key={item.name}
-                      className={item.name + "-option"}
-                      onClick={() => {
-                        switch (index) {
-                          case 0:
-                            this.handleNote();
-                            break;
-                          case 1:
-                            this.handleDigest();
-                            break;
-                          case 2:
-                            this.handleTrans();
-                            break;
-                          case 3:
-                            this.handleCopy();
-                            break;
-                          case 4:
-                            this.handleSearchBook();
-                            break;
-                          case 5:
-                            this.handleSearchInternet();
-                            break;
-                          case 6:
-                            this.handleSpeak();
-                            break;
+        <>
+          <div className="menu-list">
+            {popupList.map((item, index) => {
+              return (
+                <div
+                  key={item.name}
+                  className={item.name + "-option"}
+                  onClick={() => {
+                    switch (index) {
+                      case 0:
+                        this.handleNote();
+                        break;
+                      case 1:
+                        this.handleDigest();
+                        break;
+                      case 2:
+                        this.handleTrans();
+                        break;
+                      case 3:
+                        this.handleCopy();
+                        break;
+                      case 4:
+                        this.handleSearchBook();
+                        break;
+                      case 5:
+                        this.handleSearchInternet();
+                        break;
+                      case 6:
+                        this.handleSpeak();
+                        break;
 
-                          default:
-                            break;
-                        }
-                      }}
-                    >
-                      <Tooltip
-                        title={t(item.title)}
-                        position="top"
-                        trigger="mouseenter"
-                      >
-                        <span
-                          className={`icon-${item.icon} ${item.name}-icon`}
-                        ></span>
-                      </Tooltip>
-                    </div>
-                  );
-                })}
-              </div>
-              <ColorOption />
-            </>
-          )}
-        </NamespacesConsumer>
+                      default:
+                        break;
+                    }
+                  }}
+                >
+                  <Tooltip
+                    title={this.props.t(item.title)}
+                    position="top"
+                    trigger="mouseenter"
+                  >
+                    <span
+                      className={`icon-${item.icon} ${item.name}-icon`}
+                    ></span>
+                  </Tooltip>
+                </div>
+              );
+            })}
+          </div>
+          <ColorOption />
+        </>
       );
     };
     return renderMenuList();

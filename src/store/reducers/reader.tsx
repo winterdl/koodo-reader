@@ -6,9 +6,14 @@ const initState = {
   chapters: null,
   currentChapter: "",
   flattenChapters: null,
-  color: 0,
+  color: parseInt(OtherUtil.getReaderConfig("highlightIndex"))
+    ? parseInt(OtherUtil.getReaderConfig("highlightIndex"))
+    : OtherUtil.getReaderConfig("isDisplayDark") === "yes"
+    ? 3
+    : 0,
   noteKey: "",
   originalText: "",
+  htmlBook: null,
   readerMode: OtherUtil.getReaderConfig("readerMode") || "double",
 };
 export function reader(
@@ -30,6 +35,11 @@ export function reader(
       return {
         ...state,
         originalText: action.payload,
+      };
+    case "HANDLE_HTML_BOOK":
+      return {
+        ...state,
+        htmlBook: action.payload,
       };
     case "HANDLE_COLOR":
       return {

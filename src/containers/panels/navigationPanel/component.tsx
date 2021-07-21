@@ -9,6 +9,7 @@ import SearchBox from "../../../components/searchBox";
 import Parser from "html-react-parser";
 import EmptyCover from "../../../components/emptyCover";
 import OtherUtil from "../../../utils/otherUtil";
+import { Tooltip } from "react-tippy";
 
 class NavigationPanel extends React.Component<
   NavigationPanelProps,
@@ -182,17 +183,29 @@ class NavigationPanel extends React.Component<
         ) : (
           <>
             <div className="navigation-header">
-              <span
-                className={
-                  this.state.isNavLocked
-                    ? "icon-lock nav-lock-icon"
-                    : "icon-unlock nav-lock-icon"
-                }
-                style={{}}
-                onClick={() => {
-                  this.handleLock();
+              <Tooltip
+                title={this.props.t(this.state.isNavLocked ? "Unlock" : "Lock")}
+                position="bottom"
+                trigger="mouseenter"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  height: "30px",
                 }}
-              ></span>
+              >
+                <span
+                  className={
+                    this.state.isNavLocked
+                      ? "icon-lock nav-lock-icon"
+                      : "icon-unlock nav-lock-icon"
+                  }
+                  onClick={() => {
+                    this.handleLock();
+                  }}
+                ></span>
+              </Tooltip>
+
               {this.state.cover &&
               this.props.currentBook.cover !== "noCover" &&
               this.props.currentBook.publisher !== "mobi" &&
@@ -225,9 +238,11 @@ class NavigationPanel extends React.Component<
                 &nbsp;
                 <Trans>Minute</Trans>
               </span>
-              <div className="navigation-search-box">
-                <SearchBox {...searchProps} />
-              </div>
+              {Object.keys(this.props.currentEpub).length !== 0 && (
+                <div className="navigation-search-box">
+                  <SearchBox {...searchProps} />
+                </div>
+              )}
 
               <div className="navigation-navigation">
                 <span

@@ -3,15 +3,14 @@ import { connect } from "react-redux";
 import {
   handleMessageBox,
   handleMessage,
-} from "../../../store/actions/manager";
-import {
   handleAddDialog,
   handleActionDialog,
-} from "../../../store/actions/book";
+  handleMode,
+  handleShelfIndex,
+} from "../../../store/actions";
 import { stateType } from "../../../store";
-import { withNamespaces } from "react-i18next";
+import { withTranslation } from "react-i18next";
 import AddDialog from "./component";
-import { handleMode, handleShelfIndex } from "../../../store/actions/sidebar";
 
 const mapStateToProps = (state: stateType) => {
   return {
@@ -34,4 +33,4 @@ const actionCreator = {
 export default connect(
   mapStateToProps,
   actionCreator
-)(withNamespaces()(AddDialog as any));
+)(withTranslation()(AddDialog as any));

@@ -10,7 +10,7 @@ import { Trans } from "react-i18next";
 import { DeleteDialogProps } from "./interface";
 import { withRouter } from "react-router-dom";
 import AddTrash from "../../../utils/readUtils/addTrash";
-import BookUtil from "../../../utils/bookUtil";
+import BookUtil from "../../../utils/fileUtils/bookUtil";
 
 class DeleteDialog extends React.Component<DeleteDialogProps> {
   handleCancel = () => {
@@ -44,21 +44,22 @@ class DeleteDialog extends React.Component<DeleteDialogProps> {
       ShelfUtil.clearShelf(this.props.shelfIndex, this.props.currentBook.key);
     } else if (this.props.mode === "trash") {
       let keyArr = AddTrash.getAllTrash();
-      for (let i = 0; i < keyArr.length; i++) {
-        await this.deleteBook(keyArr[i]);
+      for (let item of keyArr) {
+        await this.deleteBook(item);
       }
 
       if (this.props.books.length === 1) {
         this.props.history.push("/manager/empty");
       }
-      this.props.handleFetchBooks();
+      this.props.handleFetchBooks(false);
+      this.props.handleFetchBooks(true);
       this.props.handleFetchBookmarks();
       this.props.handleFetchNotes();
     } else {
       AddTrash.setTrash(this.props.currentBook.key);
       //从喜爱的图书中删除
       AddFavorite.clear(this.props.currentBook.key);
-      this.props.handleFetchBooks();
+      this.props.handleFetchBooks(false);
     }
 
     this.props.handleDeleteDialog(false);

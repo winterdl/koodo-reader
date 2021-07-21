@@ -4,21 +4,18 @@ import {
   handleFetchBookSortCode,
   handleFetchList,
   handleMessageBox,
-  handleDownloadDesk,
+  handleTipDialog,
   handleLoadingDialog,
   handleNewDialog,
   handleSetting,
-} from "../../store/actions/manager";
-import { handleBackupDialog } from "../../store/actions/backupPage";
-import {
+  handleBackupDialog,
   handleFetchNotes,
   handleFetchBookmarks,
-} from "../../store/actions/reader";
-import {
   handleEditDialog,
   handleDeleteDialog,
   handleAddDialog,
-} from "../../store/actions/book";
+} from "../../store/actions";
+
 import "./manager.css";
 import { stateType } from "../../store";
 import Manager from "./component";
@@ -42,7 +39,7 @@ const mapStateToProps = (state: stateType) => {
     isSortDisplay: state.manager.isSortDisplay,
     isShowLoading: state.manager.isShowLoading,
     isShowNew: state.manager.isShowNew,
-    isDownloadDesk: state.manager.isDownloadDesk,
+    isTipDialog: state.manager.isTipDialog,
     isMessage: state.manager.isMessage,
     isBackup: state.backupPage.isBackup,
   };
@@ -58,7 +55,7 @@ const actionCreator = {
   handleEditDialog,
   handleDeleteDialog,
   handleAddDialog,
-  handleDownloadDesk,
+  handleTipDialog,
   handleLoadingDialog,
   handleNewDialog,
   handleBackupDialog,

@@ -1,5 +1,5 @@
 import i18n from "i18next";
-import { reactI18nextModule } from "react-i18next";
+import { initReactI18next } from "react-i18next";
 import translationEN from "./assets/locales/en/translation.json";
 import translationCN from "./assets/locales/cn/translation.json";
 import translationTW from "./assets/locales/tw/translation.json";
@@ -22,10 +22,10 @@ const resources = {
 };
 
 i18n
-  .use(reactI18nextModule as any) // passes i18n down to react-i18next
+  .use(initReactI18next) // passes i18n down to react-i18next
   .init({
     resources,
-    lng: "zh",
+    lng: "en",
     fallbackLng: "en",
     keySeparator: false, // we do not use keys in form messages.welcome
     interpolation: {

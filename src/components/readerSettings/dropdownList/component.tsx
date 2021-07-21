@@ -2,22 +2,9 @@
 import React from "react";
 import { dropdownList } from "../../../constants/dropdownList";
 import "./dropdownList.css";
-import { Trans, NamespacesConsumer } from "react-i18next";
+import { Trans } from "react-i18next";
 import { DropdownListProps, DropdownListState } from "./interface";
 import OtherUtil from "../../../utils/otherUtil";
-import { isElectron } from "react-device-detect";
-
-if (
-  isElectron &&
-  navigator.appVersion.indexOf("NT 6.1") === -1 &&
-  navigator.appVersion.indexOf("NT 5.1") === -1 &&
-  navigator.appVersion.indexOf("NT 6.0") === -1
-) {
-  const { ipcRenderer } = window.require("electron");
-  dropdownList[0].option = ipcRenderer.sendSync("fonts-ready", "ping");
-  dropdownList[0].option.push("Built-in font");
-}
-
 class DropdownList extends React.Component<
   DropdownListProps,
   DropdownListState
@@ -61,6 +48,9 @@ class DropdownList extends React.Component<
         this.state.currentTextAlignIndex
       ].setAttribute("selected", "selected");
   }
+  handleRest = () => {
+    this.props.renderFunc();
+  };
   //切换不同的样式
   handleView(event: any, option: string) {
     let arr = event.target.value.split(",");
@@ -70,36 +60,25 @@ class DropdownList extends React.Component<
         this.setState({
           currentFontFamilyIndex: arr[1],
         });
-        this.props.currentEpub.rendition.themes.default({
-          "a, article, cite, code, div, li, p, pre, span, table": {
-            "font-family": `${arr[0] || "Built-in font"} !important`,
-          },
-        });
+
         break;
 
       case "lineHeight":
         this.setState({
           currentLineHeightIndex: arr[1],
         });
-        this.props.currentEpub.rendition.themes.default({
-          "a, article, cite, code, div, li, p, pre, span, table": {
-            "line-height": `${arr[0] || "1.25"} !important`,
-          },
-        });
+
         break;
       case "textAlign":
         this.setState({
           currentTextAlignIndex: arr[1],
         });
-        this.props.currentEpub.rendition.themes.default({
-          "a, article, cite, code, div, li, p, pre, span, table": {
-            "text-align": `${arr[0] || "left"} !important`,
-          },
-        });
+
         break;
       default:
         break;
     }
+    this.handleRest();
   }
   render() {
     const renderParagraphCharacter = () => {
@@ -116,18 +95,13 @@ class DropdownList extends React.Component<
             }}
           >
             {item.option.map((subItem: string, index: number) => (
-              <NamespacesConsumer key={index}>
-                {(t) => {
-                  return (
-                    <option
-                      value={[subItem, index.toString()]}
-                      className="general-setting-option"
-                    >
-                      {t(subItem)}
-                    </option>
-                  );
-                }}
-              </NamespacesConsumer>
+              <option
+                value={[subItem, index.toString()]}
+                key={index}
+                className="general-setting-option"
+              >
+                {this.props.t(subItem)}
+              </option>
             ))}
           </select>
         </li>

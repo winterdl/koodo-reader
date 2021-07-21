@@ -6,6 +6,7 @@ export interface HeaderProps {
   isSortDisplay: boolean;
   isAboutOpen: boolean;
   isCollapsed: boolean;
+  isNewWarning: boolean;
 
   bookmarks: BookmarkModel[];
   notes: NoteModel[];
@@ -17,6 +18,10 @@ export interface HeaderProps {
   handleMessage: (message: string) => void;
   handleBackupDialog: (isBackup: boolean) => void;
   handleDrag: (isDrag: boolean) => void;
+  handleTipDialog: (isTipDialog: boolean) => void;
+  handleTip: (tip: string) => void;
+
+  t: (title: string) => string;
 }
 
 export interface HeaderState {
@@ -24,4 +29,5 @@ export interface HeaderState {
   language: string;
   width: number;
   isNewVersion: boolean;
+  isdataChange: boolean;
 }

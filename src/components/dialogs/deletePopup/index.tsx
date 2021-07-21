@@ -3,9 +3,9 @@ import {
   handleFetchBooks,
   handleMessageBox,
   handleMessage,
-} from "../../../store/actions/manager";
+} from "../../../store/actions";
 import { stateType } from "../../../store";
-import { withNamespaces } from "react-i18next";
+import { withTranslation } from "react-i18next";
 import DeletePopup from "./component";
 
 const mapStateToProps = (state: stateType) => {
@@ -19,4 +19,4 @@ const actionCreator = {
 export default connect(
   mapStateToProps,
   actionCreator
-)(withNamespaces()(DeletePopup as any));
+)(withTranslation()(DeletePopup as any));

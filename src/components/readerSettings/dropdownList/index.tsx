@@ -1,15 +1,15 @@
 //图书样式设置的下拉菜单页面
 import { connect } from "react-redux";
-import { withNamespaces } from "react-i18next";
+import { withTranslation } from "react-i18next";
 import DropdownList from "./component";
-import {
-  handleMessageBox,
-  handleMessage,
-} from "../../../store/actions/manager";
+import { handleMessageBox, handleMessage } from "../../../store/actions";
 import { stateType } from "../../../store";
 
 const mapStateToProps = (state: stateType) => {
-  return { currentEpub: state.book.currentEpub };
+  return {
+    currentEpub: state.book.currentEpub,
+    renderFunc: state.book.renderFunc,
+  };
 };
 const actionCreator = {
   handleMessageBox,
@@ -18,4 +18,4 @@ const actionCreator = {
 export default connect(
   mapStateToProps,
   actionCreator
-)(withNamespaces()(DropdownList as any));
+)(withTranslation()(DropdownList as any));

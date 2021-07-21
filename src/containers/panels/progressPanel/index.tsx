@@ -1,8 +1,8 @@
 import { connect } from "react-redux";
 import { stateType } from "../../../store";
-import { withNamespaces } from "react-i18next";
+import { withTranslation } from "react-i18next";
 import ProgressPanel from "./component";
-
+import { handleFetchPercentage } from "../../../store/actions";
 const mapStateToProps = (state: stateType) => {
   return {
     currentEpub: state.book.currentEpub,
@@ -12,8 +12,8 @@ const mapStateToProps = (state: stateType) => {
     flattenChapters: state.reader.flattenChapters,
   };
 };
-const actionCreator = {};
+const actionCreator = { handleFetchPercentage };
 export default connect(
   mapStateToProps,
   actionCreator
-)(withNamespaces()(ProgressPanel as any));
+)(withTranslation()(ProgressPanel as any));

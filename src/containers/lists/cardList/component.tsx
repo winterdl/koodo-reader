@@ -1,4 +1,4 @@
-//我的书摘，笔记的卡片
+//我的高亮，笔记的卡片
 import React from "react";
 import "./cardList.css";
 import NoteModel from "../../../model/Note";
@@ -10,7 +10,7 @@ import { withRouter } from "react-router-dom";
 import SortUtil from "../../../utils/readUtils/sortUtil";
 import { Redirect } from "react-router-dom";
 import NoteTag from "../../../components/noteTag";
-import BookUtil from "../../../utils/bookUtil";
+import BookUtil from "../../../utils/fileUtils/bookUtil";
 
 class CardList extends React.Component<CardListProps, CardListStates> {
   constructor(props: CardListProps) {
@@ -43,7 +43,7 @@ class CardList extends React.Component<CardListProps, CardListStates> {
       }
     }
     if (!book) {
-      this.props.handleMessage("Book not exsit");
+      this.props.handleMessage("Book not exist");
       this.props.handleMessageBox(true);
       return;
     }

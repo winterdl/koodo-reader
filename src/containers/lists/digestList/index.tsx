@@ -1,9 +1,8 @@
-//我的书摘页面
+//我的高亮页面
 import { connect } from "react-redux";
 import { stateType } from "../../../store";
-import { withNamespaces } from "react-i18next";
 import DigestList from "./component";
-import { handleFetchNotes } from "../../../store/actions/reader";
+import { handleFetchNotes } from "../../../store/actions";
 
 const mapStateToProps = (state: stateType) => {
   return {
@@ -14,7 +13,4 @@ const mapStateToProps = (state: stateType) => {
   };
 };
 const actionCreator = { handleFetchNotes };
-export default connect(
-  mapStateToProps,
-  actionCreator
-)(withNamespaces()(DigestList as any));
+export default connect(mapStateToProps, actionCreator)(DigestList);

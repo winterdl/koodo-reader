@@ -21,13 +21,20 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
       <div
         className="sort-dialog-container"
         onMouseLeave={() => {
-          this.props.handleAbout(!this.props.isAboutOpen);
+          this.props.handleAbout(false);
         }}
-        style={{
-          left: "525px",
-          height: "180px",
-          width: "120px",
+        onMouseEnter={() => {
+          this.props.handleAbout(true);
         }}
+        style={
+          this.props.isNewWarning
+            ? { left: "525px", height: "200px", width: "120px" }
+            : {
+                left: "525px",
+                height: "180px",
+                width: "120px",
+              }
+        }
       >
         <ul className="sort-by-category">
           <li
@@ -39,14 +46,7 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
           >
             <Trans>Setting</Trans>
           </li>
-          <li
-            className="sort-by-category-list"
-            onClick={() => {
-              this.handleJump("https://koodo.960960.xyz/support");
-            }}
-          >
-            <Trans>Feedback</Trans>
-          </li>
+
           <li
             className="sort-by-category-list"
             onClick={() => {
@@ -62,6 +62,14 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
             }}
           >
             <Trans>Help</Trans>
+          </li>
+          <li
+            className="sort-by-category-list"
+            onClick={() => {
+              this.handleJump("https://koodo.960960.xyz/support");
+            }}
+          >
+            <Trans>Feedback</Trans>
           </li>
           <li
             className="sort-by-category-list"
@@ -103,6 +111,17 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
           >
             <Trans>Github Repo</Trans>
           </li>
+          {this.props.isNewWarning && (
+            <li
+              className="sort-by-category-list"
+              onClick={() => {
+                this.handleJump("https://koodo.960960.xyz/download");
+              }}
+              style={{ color: "rgb(35, 170, 242)" }}
+            >
+              <Trans>New Version</Trans>
+            </li>
+          )}
         </ul>
       </div>
     );

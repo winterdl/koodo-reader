@@ -1,10 +1,12 @@
-body {
+body,
+.editor-box {
   -webkit-tap-highlight-color: transparent;
   background: rgba(255, 255, 255, 1);
   color: rgba(75, 75, 75, 1);
 }
 
 .book-content-name,
+.delete-tag-container,
 .book-subcontent-name {
   color: rgba(75, 75, 75, 1);
 }
@@ -50,6 +52,8 @@ body {
 .original-text-box,
 .trans-text-box,
 .line-option,
+.token-dialog-link-text,
+.token-dialog-token-text,
 .nav-search-page-item {
   border: 2px solid rgba(75, 75, 75, 1);
 }
@@ -60,12 +64,15 @@ input::-ms-input-placeholder,
 textarea::-webkit-input-placeholder,
 textarea::-moz-placeholder,
 textarea::-ms-input-placeholder,
-.editor-box::-ms-input-placeholder,
-.editor-box::-moz-placeholder,
 .header-search-text,
 .card-list-item-show-more,
-.editor-box::placeholder {
+.token-dialog-link-text,
+.token-dialog-token-text {
   color: rgba(75, 75, 75, 0.8);
+}
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(75, 75, 75, 0.5);
 }
 .delete-digest-button,
 .add-dialog-comfirm,
@@ -87,12 +94,14 @@ textarea::-ms-input-placeholder,
 .previous-chapter-single-container,
 .next-chapter-single-container,
 .book-bookmark-link,
-.tag-list-item,
 .message-box-container,
+.popup-close,
 .only-local-icon,
-.popup-close {
-  background-color: rgba(75, 75, 75, 1);
-  color: rgba(255, 255, 255, 1);
+.popup-close,
+.active-page,
+.sk-chase-dot:before {
+  background-color: rgba(75, 75, 75, 1) !important;
+  color: rgba(255, 255, 255, 1) !important;
 }
 
 .reading-progress-icon,
@@ -152,13 +161,14 @@ textarea::-ms-input-placeholder,
 .book-cover-item-cover,
 .book-item-list-cover {
   background: rgba(255, 255, 255, 1);
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.18);
 }
 .backup-page-backup-selector,
 .message-box-container {
   box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.3);
 }
-::-webkit-scrollbar {
+
+.tag-list-item {
   background-color: white;
 }
 .add-bookmark-button,
@@ -204,6 +214,7 @@ textarea::-ms-input-placeholder,
 .book-more-action,
 .image-operation,
 .popup-menu-triangle-up,
+.popup-menu-triangle-down,
 .add-bookmark-icon,
 .active-page,
 .exit-reading-icon,

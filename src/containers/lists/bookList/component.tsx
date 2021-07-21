@@ -9,7 +9,7 @@ import RecordRecent from "../../../utils/readUtils/recordRecent";
 import ShelfUtil from "../../../utils/readUtils/shelfUtil";
 import SortUtil from "../../../utils/readUtils/sortUtil";
 import BookModel from "../../../model/Book";
-import { Trans, NamespacesConsumer } from "react-i18next";
+import { Trans } from "react-i18next";
 import { BookListProps, BookListState } from "./interface";
 import OtherUtil from "../../../utils/otherUtil";
 import localforage from "localforage";
@@ -17,7 +17,7 @@ import DeletePopup from "../../../components/dialogs/deletePopup";
 import Empty from "../../emptyPage";
 import { Redirect, withRouter } from "react-router-dom";
 import ViewMode from "../../../components/viewMode";
-import BackUtil from "../../../utils/syncUtils/backupUtil";
+import { backup } from "../../../utils/syncUtils/backupUtil";
 import { isElectron } from "react-device-detect";
 
 class BookList extends React.Component<BookListProps, BookListState> {
@@ -126,7 +126,6 @@ class BookList extends React.Component<BookListProps, BookListState> {
         </div>
       );
     }
-
     return books.map((item: BookModel, index: number) => {
       return this.props.viewMode === "list" ? (
         <BookListItem
@@ -174,18 +173,14 @@ class BookList extends React.Component<BookListProps, BookListState> {
     let shelfTitle = Object.keys(shelfList);
     return shelfTitle.map((item, index) => {
       return (
-        <NamespacesConsumer key={item}>
-          {(t) => (
-            <option
-              value={[item, index.toString()]}
-              key={index}
-              className="add-dialog-shelf-list-option"
-              selected={this.props.shelfIndex === index ? true : false}
-            >
-              {t(item === "New" ? "All Books" : item)}
-            </option>
-          )}
-        </NamespacesConsumer>
+        <option
+          value={[item, index.toString()]}
+          key={index}
+          className="add-dialog-shelf-list-option"
+          selected={this.props.shelfIndex === index ? true : false}
+        >
+          {this.props.t(item === "New" ? "All Books" : item)}
+        </option>
       );
     });
   };
@@ -201,15 +196,14 @@ class BookList extends React.Component<BookListProps, BookListState> {
       return <Redirect to="/manager/empty" />;
     }
     if (isElectron) {
+      //兼容之前的版本
       localforage.getItem(this.props.books[0].key).then((result) => {
         if (result) {
-          BackUtil.backup(
+          backup(
             this.props.books,
             this.props.notes,
             this.props.bookmarks,
-            () => {},
-            4,
-            () => {}
+            false
           );
         }
       });

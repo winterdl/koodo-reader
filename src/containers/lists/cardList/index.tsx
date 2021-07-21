@@ -1,13 +1,13 @@
-//我的书摘页面
+//我的高亮页面
 import { connect } from "react-redux";
 import { stateType } from "../../../store";
-import { withNamespaces } from "react-i18next";
+import { withTranslation } from "react-i18next";
 import CardList from "./component";
-import { handleReadingBook } from "../../../store/actions/book";
 import {
+  handleReadingBook,
   handleMessageBox,
   handleMessage,
-} from "../../../store/actions/manager";
+} from "../../../store/actions";
 
 const mapStateToProps = (state: stateType) => {
   return {
@@ -29,4 +29,4 @@ const actionCreator = {
 export default connect(
   mapStateToProps,
   actionCreator
-)(withNamespaces()(CardList as any));
+)(withTranslation()(CardList as any));
