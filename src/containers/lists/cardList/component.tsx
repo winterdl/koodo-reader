@@ -1,4 +1,3 @@
-//我的高亮，笔记的卡片
 import React from "react";
 import "./cardList.css";
 import NoteModel from "../../../model/Note";
@@ -143,7 +142,7 @@ class CardList extends React.Component<CardListProps, CardListStates> {
                   {this.props.mode === "note" ? (
                     <Trans>{"More Notes"}</Trans>
                   ) : (
-                    <Trans>{"More Digests"}</Trans>
+                    <Trans>{"More Highlights"}</Trans>
                   )}
 
                   <span className="icon-dropdown icon-card-right"></span>

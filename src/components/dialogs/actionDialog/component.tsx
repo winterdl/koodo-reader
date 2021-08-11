@@ -1,4 +1,3 @@
-//对图书操作的菜单
 import React from "react";
 import "./actionDialog.css";
 import { Trans } from "react-i18next";
@@ -118,7 +117,12 @@ class ActionDialog extends React.Component<ActionDialogProps> {
                   FileSaver.saveAs(
                     new Blob([result]),
                     this.props.currentBook.name +
-                      `.${this.props.currentBook.format.toLocaleLowerCase()}`
+                      `.${
+                        this.props.currentBook.format !== "EPUB" &&
+                        this.props.currentBook.cover !== "noCover"
+                          ? "epub"
+                          : this.props.currentBook.format.toLocaleLowerCase()
+                      }`
                   );
                 });
             }}

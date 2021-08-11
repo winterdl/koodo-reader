@@ -1,4 +1,3 @@
-//排序弹窗
 import React from "react";
 import { Trans } from "react-i18next";
 import { AboutDialogProps, AboutDialogState } from "./interface";
@@ -28,10 +27,10 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
         }}
         style={
           this.props.isNewWarning
-            ? { left: "525px", height: "200px", width: "120px" }
+            ? { left: "525px", height: "225px", width: "120px" }
             : {
                 left: "525px",
-                height: "180px",
+                height: "200px",
                 width: "120px",
               }
         }
@@ -70,6 +69,14 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
             }}
           >
             <Trans>Feedback</Trans>
+          </li>
+          <li
+            className="sort-by-category-list"
+            onClick={() => {
+              this.handleJump("https://forms.office.com/r/tgD1ZizHB2");
+            }}
+          >
+            <Trans>Survey</Trans>
           </li>
           <li
             className="sort-by-category-list"

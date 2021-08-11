@@ -2,6 +2,9 @@ const { app, BrowserWindow, Menu, remote, ipcMain } = require("electron");
 const { ebtMain } = require("electron-baidu-tongji");
 const path = require("path");
 const isDev = require("electron-is-dev");
+const fs = require("fs");
+const configDir = (app || remote.app).getPath("userData");
+const dirPath = path.join(configDir, "uploads");
 let mainWin;
 let readerWindow;
 const singleInstance = app.requestSingleInstanceLock();
@@ -12,6 +15,12 @@ if (process.platform == "win32" && process.argv.length >= 2) {
 // Single Instance Lock
 if (!singleInstance) {
   app.quit();
+  if (filePath) {
+    fs.writeFileSync(
+      path.join(dirPath, "log.json"),
+      JSON.stringify({ filePath })
+    );
+  }
 } else {
   app.on("second-instance", (event, argv, workingDir) => {
     if (mainWin) {
@@ -106,8 +115,7 @@ app.on("ready", () => {
       readerWindow.loadURL(url.indexOf("pdf") > -1 ? pdfLocation : url);
     }
     readerWindow.on("close", () => {
-      readerWindow.destroy();
-      readerWindow = null;
+      readerWindow && readerWindow.destroy();
     });
     event.returnValue = "success";
   });
@@ -118,11 +126,19 @@ app.on("ready", () => {
   });
 
   ipcMain.on("storage-location", (event, arg) => {
-    const configDir = (app || remote.app).getPath("userData");
-    const dirPath = path.join(configDir, "uploads");
     event.returnValue = path.join(dirPath, "data");
   });
   ipcMain.on("get-file-data", function (event) {
+    if (fs.existsSync(path.join(dirPath, "log.json"))) {
+      const _data = JSON.parse(
+        fs.readFileSync(path.join(dirPath, "log.json"), "utf8") || "{}"
+      );
+      if (_data && _data.filePath) {
+        filePath = _data.filePath;
+        fs.writeFileSync(path.join(dirPath, "log.json"), "");
+      }
+    }
+
     event.returnValue = filePath;
     filePath = null;
   });

@@ -1,4 +1,3 @@
-//从本地导入书籍
 import React from "react";
 import "./importLocal.css";
 import BookModel from "../../model/Book";
@@ -42,10 +41,21 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
           ipcRenderer.sendSync("storage-location", "ping")
         );
       }
-      var filePath = ipcRenderer.sendSync("get-file-data");
+
+      const filePath = ipcRenderer.sendSync("get-file-data");
       if (filePath && filePath !== ".") {
         this.handleFilePath(filePath);
       }
+      window.addEventListener(
+        "focus",
+        (event) => {
+          const _filePath = ipcRenderer.sendSync("get-file-data");
+          if (_filePath && _filePath !== ".") {
+            this.handleFilePath(_filePath);
+          }
+        },
+        false
+      );
     }
     window.addEventListener("resize", () => {
       this.setState({ width: document.body.clientWidth });
@@ -175,7 +185,7 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
               let mobiFile = new MobiParser(file_content);
               let content: any = await mobiFile.render(isElectron);
               //包含太多图片或者文件大于5m就不转换
-              if (typeof content === "object" || file.size / 1024 / 1024 > 10) {
+              if (typeof content === "object" || file.size / 1024 / 1024 > 5) {
                 result = BookUtil.generateBook(
                   bookName,
                   extension,

@@ -1,4 +1,3 @@
-//底部阅读进度面板
 import React from "react";
 import "./progressPanel.css";
 import RecordLocation from "../../../utils/readUtils/recordLocation";
@@ -31,8 +30,10 @@ class ProgressPanel extends React.Component<
   componentWillReceiveProps(nextProps: ProgressPanelProps) {
     if (nextProps.currentBook && nextProps.htmlBook) {
       setTimeout(() => {
-        let scrollTop = RecordLocation.getCfi(nextProps.currentBook.key).scroll;
-        let length = RecordLocation.getCfi(nextProps.currentBook.key).length;
+        let scrollTop =
+          RecordLocation.getCfi(nextProps.currentBook.key).scroll || 0;
+        let length =
+          RecordLocation.getCfi(nextProps.currentBook.key).length || 1;
         this.setState({
           displayPercentage: scrollTop / length,
         });

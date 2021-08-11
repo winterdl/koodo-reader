@@ -21,7 +21,7 @@
   "Search my library": "搜尋我的書庫",
   "Card Mode": "卡片模式",
   "List Mode": "列表模式",
-  "More Digests": "顯示書摘出處",
+  "More Highlights": "顯示高亮出處",
   "Translate": "翻譯",
   "More Notes": "顯示筆記出處",
   "Work": "工作學習",
@@ -138,8 +138,8 @@
   "Move your mouse on the top edge of the reader": "在閱讀器界面，將滑鼠游標移至上邊緣處，在彈出的選單欄中點擊新增書籤",
   "Empty Note": "我的筆記是空的",
   "Select any text and click the Add-Note button on the popup Menu": "在閱讀器界面，選取文字後，在彈出的對話框中點擊筆記",
-  "Empty Digest": "我的書摘是空的",
-  "Select any text and click the Highlight button on the popup Menu": "在閱讀器界面，選取文字後，在彈出的對話框中點擊摘錄",
+  "Empty Highlight": "我的高亮是空的",
+  "Select any text and click the Highlight button on the popup Menu": "在閱讀器界面，選取文字後，在彈出的對話框中點擊高亮",
   "Empty Shelf": "我的書架是空的",
   "Invert color": "颜色反转",
   "Move your mouse on the top of any book": "將滑鼠游標移動到任意書本上方，在彈出的選單中點擊加到書架",
@@ -291,5 +291,6 @@
   "Disable analytics service": "关闭统计功能",
   "Hide navigation button": "不显示翻页按钮",
   "More": "显示笔记出处",
+  "Survey": "用戶調查",
   "Sync data from storage": "从存储位置同步数据"
 }

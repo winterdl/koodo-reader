@@ -1,10 +1,8 @@
-//卡片模式下的图书显示
 import React from "react";
 import RecentBooks from "../../utils/readUtils/recordRecent";
 import { ViewerProps, ViewerState } from "./interface";
 import localforage from "localforage";
 import { withRouter } from "react-router-dom";
-import _ from "underscore";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import MobiParser from "../../utils/fileUtils/mobiParser";
 import marked from "marked";
@@ -24,7 +22,7 @@ import styleUtil from "../../utils/readUtils/styleUtil";
 import { isElectron } from "react-device-detect";
 import Lottie from "react-lottie";
 import animationSiri from "../../assets/lotties/siri.json";
-
+import _ from "underscore";
 declare var window: any;
 const siriOptions = {
   loop: true,
@@ -97,10 +95,56 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
     setTimeout(() => {
       let iFrame: any = document.getElementsByTagName("iframe")[0];
       let body = iFrame.contentWindow.document.body;
-      let items = body.querySelectorAll("p", "a");
-      let lastchild = items[items.length - 1];
-      if (!lastchild) return;
-      iFrame.height = lastchild.offsetTop + 400;
+      let lastchild = body.lastElementChild;
+      let lastEle = body.lastChild;
+      let itemAs = body.querySelectorAll("a");
+      let itemPs = body.querySelectorAll("p");
+      let lastItemA = itemAs[itemAs.length - 1];
+      let lastItemP = itemPs[itemPs.length - 1];
+      let lastItem;
+      if (_.isElement(lastItemA) && _.isElement(lastItemP)) {
+        if (
+          lastItemA.clientHeight + (lastItemA as any).offsetTop >
+          lastItemP.clientHeight + (lastItemP as any).offsetTop
+        ) {
+          lastItem = lastItemA;
+        } else {
+          lastItem = lastItemP;
+        }
+      }
+
+      let nodeHeight = 0;
+
+      if (!lastchild && !lastItem && !lastEle) return;
+      if (lastEle.nodeType === 3 && !lastchild && !lastItem) return;
+
+      if (lastEle.nodeType === 3) {
+        if (document.createRange) {
+          let range = document.createRange();
+          range.selectNodeContents(lastEle);
+          if (range.getBoundingClientRect) {
+            let rect = range.getBoundingClientRect();
+            if (rect) {
+              nodeHeight = rect.bottom - rect.top;
+            }
+          }
+        }
+      }
+
+      iFrame.height =
+        Math.max(
+          _.isElement(lastchild)
+            ? lastchild.clientHeight + (lastchild as any).offsetTop
+            : 0,
+          _.isElement(lastEle)
+            ? lastEle.clientHeight + (lastEle as any).offsetTop
+            : 0,
+          _.isElement(lastItem)
+            ? lastItem.clientHeight + (lastItem as any).offsetTop
+            : 0
+        ) +
+        400 +
+        (lastEle.nodeType === 3 ? nodeHeight : 0);
     }, 500);
   };
   handleRecord() {
