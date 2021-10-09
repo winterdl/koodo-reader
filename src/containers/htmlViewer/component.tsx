@@ -23,6 +23,9 @@ import { isElectron } from "react-device-detect";
 import Lottie from "react-lottie";
 import animationSiri from "../../assets/lotties/siri.json";
 import _ from "underscore";
+import BackgroundWidget from "../../components/backgroundWidget";
+import toast from "react-hot-toast";
+
 declare var window: any;
 const siriOptions = {
   loop: true,
@@ -36,7 +39,11 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
   epub: any;
   constructor(props: ViewerProps) {
     super(props);
-    this.state = { key: "", isLoading: true };
+    this.state = {
+      key: "",
+      isLoading: true,
+      scale: OtherUtil.getReaderConfig("scale") || 1,
+    };
   }
 
   componentDidMount() {
@@ -45,7 +52,11 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
     this.setState({ key });
     localforage.getItem("books").then((result: any) => {
       let book = result[_.findIndex(result, { key })];
-      BookUtil.fetchBook(key, true).then((result) => {
+      BookUtil.fetchBook(key, true, book.path).then((result) => {
+        if (!result) {
+          toast.error(this.props.t("Book not exsits"));
+          return;
+        }
         this.props.handleReadingBook(book);
         if (book.format === "MOBI" || book.format === "AZW3") {
           this.handleMobi(result as ArrayBuffer);
@@ -69,6 +80,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         }
         this.props.handleReadingState(true);
         RecentBooks.setRecent(key);
+        document.title = book.name + " - Koodo Reader";
       });
     });
     this.props.handleRenderFunc(this.handleRenderHtml);
@@ -148,10 +160,15 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
     }, 500);
   };
   handleRecord() {
-    OtherUtil.setReaderConfig("windowWidth", document.body.clientWidth + "");
-    OtherUtil.setReaderConfig("windowHeight", document.body.clientHeight + "");
-    OtherUtil.setReaderConfig("windowX", window.screenX + "");
-    OtherUtil.setReaderConfig("windowY", window.screenY + "");
+    if (isElectron) {
+      const { ipcRenderer } = window.require("electron");
+      let bounds = ipcRenderer.sendSync("reader-bounds", "ping");
+      OtherUtil.setReaderConfig("windowWidth", bounds.width);
+      OtherUtil.setReaderConfig("windowHeight", bounds.height);
+      OtherUtil.setReaderConfig("windowX", bounds.x);
+      OtherUtil.setReaderConfig("windowY", bounds.y);
+    }
+
     RecordLocation.recordScrollHeight(
       this.state.key,
       document.body.clientWidth,
@@ -164,6 +181,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
     let htmlParser = new HtmlParser(
       new DOMParser().parseFromString(docStr, "text/html")
     );
+
     this.props.handleHtmlBook({
       doc: htmlParser.getAnchoredDoc(),
       chapters: htmlParser.getContentList(),
@@ -190,8 +208,9 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       if (!doc) {
         return;
       }
-      let imgs = doc.getElementsByTagName("img");
-      let links = doc.getElementsByTagName("a");
+
+      let imgs = doc!.getElementsByTagName("img");
+      let links = doc!.getElementsByTagName("a");
       for (let item of links) {
         item.addEventListener("click", (e) => {
           e.preventDefault();
@@ -201,6 +220,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       for (let item of imgs) {
         item.setAttribute("style", "max-width: 100%");
       }
+
       this.bindEvent(doc);
     }, 1);
   };
@@ -212,6 +232,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
   bindEvent = (doc: any) => {
     let isFirefox = navigator.userAgent.indexOf("Firefox") > -1;
     // 鼠标滚轮翻页
+
     if (isFirefox) {
       doc.addEventListener(
         "DOMMouseScroll",
@@ -292,25 +313,26 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
             <Lottie options={siriOptions} height={100} width={300} />
           </div>
         )}
+
         <div
           className="ebook-viewer"
           style={{
-            width: `${
-              (100 * parseFloat(OtherUtil.getReaderConfig("scale") || "1")) / 2
-            }%`,
-            height: "100%",
-            marginLeft: `${
-              (100 *
-                (2 - parseFloat(OtherUtil.getReaderConfig("scale") || "1"))) /
-              4
-            }%`,
+            position: "absolute",
+            left: `calc(50vw - ${270 * parseFloat(this.state.scale)}px + 9px)`,
+            right: `calc(50vw - ${270 * parseFloat(this.state.scale)}px + 7px)`,
+            top: "20px",
+            bottom: "20px",
             overflowY: "scroll",
+            zIndex: 5,
           }}
         >
           <iframe title="html-viewer" width="100%">
             Loading
           </iframe>
         </div>
+        {OtherUtil.getReaderConfig("isHideBackground") === "yes" ? null : (
+          <BackgroundWidget />
+        )}
       </>
     );
   }

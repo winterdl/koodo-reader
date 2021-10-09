@@ -10,6 +10,9 @@ import untar from "js-untar";
 import OtherUtil from "../../utils/otherUtil";
 import { mimetype } from "../../constants/mimetype";
 import RecordLocation from "../../utils/readUtils/recordLocation";
+import { isElectron } from "react-device-detect";
+import { toast } from "react-hot-toast";
+
 declare var window: any;
 
 let JSZip = window.JSZip;
@@ -53,7 +56,11 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
   handleRender = (key: string) => {
     localforage.getItem("books").then((result: any) => {
       let book = result[_.findIndex(result, { key })];
-      BookUtil.fetchBook(key, true).then((result) => {
+      BookUtil.fetchBook(key, true, book.path).then((result) => {
+        if (!result) {
+          toast.error(this.props.t("Book not exsits"));
+          return;
+        }
         this.props.handleReadingBook(book);
         if (book.format === "CBR") {
           this.handleCbr(result as ArrayBuffer);
@@ -64,6 +71,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         }
         this.props.handleReadingState(true);
         RecentBooks.setRecent(key);
+        document.title = book.name + " - Koodo Reader";
       });
     });
   };
@@ -71,10 +79,14 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
   handleExit(key: string) {
     this.props.handleReadingState(false);
 
-    OtherUtil.setReaderConfig("windowWidth", document.body.clientWidth + "");
-    OtherUtil.setReaderConfig("windowHeight", document.body.clientHeight + "");
-    OtherUtil.setReaderConfig("windowX", window.screenX + "");
-    OtherUtil.setReaderConfig("windowY", window.screenY + "");
+    if (isElectron) {
+      const { ipcRenderer } = window.require("electron");
+      let bounds = ipcRenderer.sendSync("reader-bounds", "ping");
+      OtherUtil.setReaderConfig("windowWidth", bounds.width);
+      OtherUtil.setReaderConfig("windowHeight", bounds.height);
+      OtherUtil.setReaderConfig("windowX", bounds.x);
+      OtherUtil.setReaderConfig("windowY", bounds.y);
+    }
   }
   base64ArrayBuffer = (arrayBuffer) => {
     var base64 = "";

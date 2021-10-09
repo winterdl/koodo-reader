@@ -6,7 +6,6 @@ import EditDialog from "../../components/dialogs/editDialog";
 import AddDialog from "../../components/dialogs/addDialog";
 import SortDialog from "../../components/dialogs/sortDialog";
 import AboutDialog from "../../components/dialogs/aboutDialog";
-import MessageBox from "../../containers/messageBox";
 import BackupDialog from "../../components/dialogs/backupDialog";
 import "./manager.css";
 import { ManagerProps, ManagerState } from "./interface";
@@ -20,6 +19,7 @@ import { routes } from "../../router/routes";
 import Arrow from "../../components/arrow";
 import LoadingDialog from "../../components/dialogs/loadingDialog";
 import TipDialog from "../../components/dialogs/TipDialog";
+import { Toaster } from "react-hot-toast";
 
 //判断是否为触控设备
 const is_touch_device = () => {
@@ -63,11 +63,6 @@ class Manager extends React.Component<ManagerProps, ManagerState> {
       this.setState({
         favoriteBooks: Object.keys(AddFavorite.getAllFavorite()).length,
       });
-    }
-    if (nextProps.isMessage) {
-      this.timer = global.setTimeout(() => {
-        this.props.handleMessageBox(false);
-      }, 2000);
     }
   }
   UNSAFE_componentWillMount() {
@@ -125,23 +120,7 @@ class Manager extends React.Component<ManagerProps, ManagerState> {
           )[0] as any).style.zIndex = "50";
         }}
       >
-        {this.state.isDrag && !this.props.dragItem && (
-          <div className="drag-background">
-            <div className="drag-info">
-              <Arrow />
-              <p className="arrow-text">
-                <Trans>Drop your books here</Trans>
-              </p>
-            </div>
-          </div>
-        )}
-        <Sidebar />
-        <Header {...{ handleDrag: this.handleDrag }} />
-        {this.props.isOpenDeleteDialog && <DeleteDialog />}
-        {this.props.isOpenEditDialog && <EditDialog />}
-        {this.props.isOpenAddDialog && <AddDialog />}
-        {this.props.isShowLoading && <LoadingDialog />}
-        {
+        {!this.props.dragItem && (
           <div
             className="drag-background"
             onClick={() => {
@@ -163,16 +142,31 @@ class Manager extends React.Component<ManagerProps, ManagerState> {
               this.props.isOpenEditDialog ||
               this.props.isOpenAddDialog ||
               this.props.isTipDialog ||
-              this.props.isShowLoading
+              this.props.isShowLoading ||
+              this.state.isDrag
                 ? {}
                 : {
                     display: "none",
                   }
             }
-          ></div>
-        }
-
-        {this.props.isMessage && <MessageBox />}
+          >
+            {this.state.isDrag && (
+              <div className="drag-info">
+                <Arrow />
+                <p className="arrow-text">
+                  <Trans>Drop your books here</Trans>
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+        <Sidebar />
+        <Header {...{ handleDrag: this.handleDrag }} />
+        {this.props.isOpenDeleteDialog && <DeleteDialog />}
+        {this.props.isOpenEditDialog && <EditDialog />}
+        {this.props.isOpenAddDialog && <AddDialog />}
+        {this.props.isShowLoading && <LoadingDialog />}
+        <Toaster />
         {this.props.isSortDisplay && <SortDialog />}
         {this.props.isAboutOpen && <AboutDialog />}
         {this.props.isBackup && <BackupDialog />}

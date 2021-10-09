@@ -1,9 +1,8 @@
-const { app, BrowserWindow, Menu, remote, ipcMain } = require("electron");
-const { ebtMain } = require("electron-baidu-tongji");
+const { app, BrowserWindow, Menu, ipcMain } = require("electron");
 const path = require("path");
 const isDev = require("electron-is-dev");
 const fs = require("fs");
-const configDir = (app || remote.app).getPath("userData");
+const configDir = app.getPath("userData");
 const dirPath = path.join(configDir, "uploads");
 let mainWin;
 let readerWindow;
@@ -36,8 +35,8 @@ app.on("ready", () => {
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true,
+      contextIsolation: false,
       nativeWindowOpen: true,
-      enableRemoteModule: true,
       nodeIntegrationInSubFrames: true,
       allowRunningInsecureContent: true,
     },
@@ -55,7 +54,6 @@ app.on("ready", () => {
 
   mainWin.loadURL(urlLocation);
 
-  ebtMain(ipcMain, isDev);
   mainWin.on("close", () => {
     mainWin = null;
   });
@@ -67,8 +65,8 @@ app.on("ready", () => {
       webPreferences: {
         webSecurity: false,
         nodeIntegration: true,
+        contextIsolation: false,
         nativeWindowOpen: true,
-        enableRemoteModule: true,
         nodeIntegrationInSubFrames: true,
         allowRunningInsecureContent: true,
       },
@@ -83,7 +81,18 @@ app.on("ready", () => {
           "web",
           "viewer.html"
         )}?${url.split("?")[1]}`;
+    var urlParams;
 
+    var match,
+      pl = /\+/g,
+      search = /([^&=]+)=?([^&]*)/g,
+      decode = function (s) {
+        return decodeURIComponent(s.replace(pl, " "));
+      },
+      query = url.split("?").reverse()[0];
+    urlParams = {};
+    while ((match = search.exec(query)))
+      urlParams[decode(match[1])] = decode(match[2]);
     if (url.indexOf("full") > -1) {
       Object.assign(options, {
         width: 1050,
@@ -93,23 +102,14 @@ app.on("ready", () => {
       readerWindow.loadURL(url.indexOf("pdf") > -1 ? pdfLocation : url);
       readerWindow.maximize();
     } else {
-      var urlParams;
-
-      var match,
-        pl = /\+/g,
-        search = /([^&=]+)=?([^&]*)/g,
-        decode = function (s) {
-          return decodeURIComponent(s.replace(pl, " "));
-        },
-        query = url.split("?").reverse()[0];
-      urlParams = {};
-      while ((match = search.exec(query)))
-        urlParams[decode(match[1])] = decode(match[2]);
       Object.assign(options, {
         width: parseInt(urlParams.width),
         height: parseInt(urlParams.height),
         x: parseInt(urlParams.x),
         y: parseInt(urlParams.y),
+        frame: urlParams.isMergeWord === "yes" ? false : true,
+        hasShadow: urlParams.isMergeWord === "yes" ? false : true,
+        transparent: urlParams.isMergeWord === "yes" ? true : false,
       });
       readerWindow = new BrowserWindow(options);
       readerWindow.loadURL(url.indexOf("pdf") > -1 ? pdfLocation : url);
@@ -117,16 +117,18 @@ app.on("ready", () => {
     readerWindow.on("close", () => {
       readerWindow && readerWindow.destroy();
     });
+
     event.returnValue = "success";
-  });
-  ipcMain.handle("fonts-ready", async (event, arg) => {
-    const fontList = require("font-list");
-    const fonts = await fontList.getFonts({ disableQuoting: true });
-    return fonts;
   });
 
   ipcMain.on("storage-location", (event, arg) => {
     event.returnValue = path.join(dirPath, "data");
+  });
+  ipcMain.on("user-data", (event, arg) => {
+    event.returnValue = dirPath;
+  });
+  ipcMain.on("reader-bounds", (event, arg) => {
+    event.returnValue = readerWindow ? readerWindow.getBounds() : {};
   });
   ipcMain.on("get-file-data", function (event) {
     if (fs.existsSync(path.join(dirPath, "log.json"))) {

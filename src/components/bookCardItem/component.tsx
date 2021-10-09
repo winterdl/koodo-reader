@@ -10,6 +10,8 @@ import RecordLocation from "../../utils/readUtils/recordLocation";
 import { isElectron } from "react-device-detect";
 import EmptyCover from "../emptyCover";
 import BookUtil from "../../utils/fileUtils/bookUtil";
+import toast from "react-hot-toast";
+
 declare var window: any;
 
 class BookCardItem extends React.Component<BookCardProps, BookCardState> {
@@ -25,12 +27,12 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
     };
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     let filePath = "";
     //控制是否自动打开本书
     if (isElectron) {
       const { ipcRenderer } = window.require("electron");
-      filePath = await ipcRenderer.sendSync("get-file-data");
+      filePath = ipcRenderer.sendSync("get-file-data");
     }
 
     if (
@@ -43,26 +45,7 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
     }
     this.props.handleReadingBook(this.props.book);
   }
-  componentWillReceiveProps(nextProps: BookCardProps) {
-    if (nextProps.isDragToLove !== this.props.isDragToLove) {
-      if (
-        nextProps.isDragToLove &&
-        this.props.dragItem === this.props.book.key
-      ) {
-        this.handleLoveBook();
-        this.props.handleDragToLove(false);
-      }
-    }
-    if (nextProps.isDragToDelete !== this.props.isDragToDelete) {
-      if (
-        nextProps.isDragToDelete &&
-        this.props.dragItem === this.props.book.key
-      ) {
-        this.handleDeleteBook();
-        this.props.handleDragToDelete(false);
-      }
-    }
-  }
+
   handleMoreAction = (event: any) => {
     const e = event || window.event;
     let x = e.clientX;
@@ -91,8 +74,7 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
   handleLoveBook = () => {
     AddFavorite.setFavorite(this.props.book.key);
     this.setState({ isFavorite: true });
-    this.props.handleMessage("Add Successfully");
-    this.props.handleMessageBox(true);
+    toast.success(this.props.t("Add Successfully"));
   };
   handleCancelLoveBook = () => {
     AddFavorite.clear(this.props.book.key);
@@ -100,14 +82,23 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
     if (Object.keys(AddFavorite.getAllFavorite()).length === 0) {
       this.props.history.push("/manager/empty");
     }
-    this.props.handleMessage("Cancel Successfully");
-    this.props.handleMessageBox(true);
+    toast.success(this.props.t("Cancel Successfully"));
   };
   //控制按钮的弹出
   handleConfig = (mode: boolean) => {
     this.setState({ isOpenConfig: mode });
   };
   handleJump = () => {
+    if (this.props.isSelectBook) {
+      this.props.handleSelectedBooks(
+        this.props.isSelected
+          ? this.props.selectedBooks.filter(
+              (item) => item !== this.props.book.key
+            )
+          : [...this.props.selectedBooks, this.props.book.key]
+      );
+      return;
+    }
     RecentBooks.setRecent(this.props.book.key);
     BookUtil.RedirectBook(this.props.book);
   };
@@ -139,24 +130,12 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
               onClick={() => {
                 this.handleJump();
               }}
-              onDragStart={() => {
-                this.props.handleDragItem(this.props.book.key);
-              }}
-              onDragEnd={() => {
-                this.props.handleDragItem("");
-              }}
             />
           ) : (
             <div
               className="book-item-cover"
               onClick={() => {
                 this.handleJump();
-              }}
-              onDragStart={() => {
-                this.props.handleDragItem(this.props.book.key);
-              }}
-              onDragEnd={() => {
-                this.props.handleDragItem("");
               }}
             >
               <EmptyCover
@@ -179,8 +158,11 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
               }}
             ></span>
           ) : null}
+          {this.props.isSelectBook && this.props.isSelected ? (
+            <span className="icon-message book-selected-icon"></span>
+          ) : null}
 
-          {this.state.isOpenConfig ? (
+          {this.state.isOpenConfig && !this.props.isSelectBook ? (
             <>
               {this.props.book.format !== "PDF" && (
                 <div className="reading-progress-icon">

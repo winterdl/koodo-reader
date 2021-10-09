@@ -1,19 +1,22 @@
 import { connect } from "react-redux";
 import {
   handleFetchBooks,
-  handleMessageBox,
-  handleMessage,
   handleDeleteDialog,
   handleActionDialog,
   handleFetchBookmarks,
   handleFetchNotes,
+  handleSelectedBooks,
+  handleSelectBook,
 } from "../../../store/actions";
 import { stateType } from "../../../store";
 import DeleteDialog from "./component";
+import { withTranslation } from "react-i18next";
 
 const mapStateToProps = (state: stateType) => {
   return {
     books: state.manager.books,
+    selectedBooks: state.manager.selectedBooks,
+    isSelectBook: state.manager.isSelectBook,
     isOpenDeleteDialog: state.book.isOpenDeleteDialog,
     currentBook: state.book.currentBook,
     bookmarks: state.reader.bookmarks,
@@ -28,8 +31,11 @@ const actionCreator = {
   handleDeleteDialog,
   handleFetchBookmarks,
   handleFetchNotes,
-  handleMessageBox,
-  handleMessage,
   handleActionDialog,
+  handleSelectedBooks,
+  handleSelectBook,
 };
-export default connect(mapStateToProps, actionCreator)(DeleteDialog);
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(DeleteDialog));

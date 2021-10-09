@@ -7,6 +7,8 @@ import _ from "underscore";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import "./viewer.css";
 import OtherUtil from "../../utils/otherUtil";
+import { isElectron } from "react-device-detect";
+import { toast } from "react-hot-toast";
 
 declare var window: any;
 
@@ -23,11 +25,16 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
 
     localforage.getItem("books").then((result: any) => {
       let book = result[_.findIndex(result, { key })];
-      BookUtil.fetchBook(key, true).then((result) => {
+      BookUtil.fetchBook(key, true, book.path).then((result) => {
+        if (!result) {
+          toast.error(this.props.t("Book not exsits"));
+          return;
+        }
         this.props.handleReadingBook(book);
         this.handleDjvu(result as ArrayBuffer);
         this.props.handleReadingState(true);
         RecentBooks.setRecent(key);
+        document.title = book.name + " - Koodo Reader";
       });
     });
     document
@@ -41,10 +48,14 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
   handleExit() {
     this.props.handleReadingState(false);
 
-    OtherUtil.setReaderConfig("windowWidth", document.body.clientWidth + "");
-    OtherUtil.setReaderConfig("windowHeight", document.body.clientHeight + "");
-    OtherUtil.setReaderConfig("windowX", window.screenX + "");
-    OtherUtil.setReaderConfig("windowY", window.screenY + "");
+    if (isElectron) {
+      const { ipcRenderer } = window.require("electron");
+      let bounds = ipcRenderer.sendSync("reader-bounds", "ping");
+      OtherUtil.setReaderConfig("windowWidth", bounds.width);
+      OtherUtil.setReaderConfig("windowHeight", bounds.height);
+      OtherUtil.setReaderConfig("windowX", bounds.x);
+      OtherUtil.setReaderConfig("windowY", bounds.y);
+    }
   }
 
   handleDjvu = async (result: ArrayBuffer) => {

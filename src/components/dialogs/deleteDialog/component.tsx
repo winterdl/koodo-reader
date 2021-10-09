@@ -11,7 +11,7 @@ import { DeleteDialogProps } from "./interface";
 import { withRouter } from "react-router-dom";
 import AddTrash from "../../../utils/readUtils/addTrash";
 import BookUtil from "../../../utils/fileUtils/bookUtil";
-
+import toast from "react-hot-toast";
 class DeleteDialog extends React.Component<DeleteDialogProps> {
   handleCancel = () => {
     this.props.handleDeleteDialog(false);
@@ -41,6 +41,15 @@ class DeleteDialog extends React.Component<DeleteDialogProps> {
   handleComfirm = async () => {
     //从列表删除和从图书库删除判断
     if (this.props.mode === "shelf") {
+      if (this.props.isSelectBook) {
+        this.props.selectedBooks.forEach((item) => {
+          ShelfUtil.clearShelf(this.props.shelfIndex, item);
+        });
+        this.props.handleSelectedBooks([]);
+        this.props.handleFetchBooks(false);
+        this.props.handleSelectBook(!this.props.isSelectBook);
+        return;
+      }
       ShelfUtil.clearShelf(this.props.shelfIndex, this.props.currentBook.key);
     } else if (this.props.mode === "trash") {
       let keyArr = AddTrash.getAllTrash();
@@ -55,6 +64,15 @@ class DeleteDialog extends React.Component<DeleteDialogProps> {
       this.props.handleFetchBooks(true);
       this.props.handleFetchBookmarks();
       this.props.handleFetchNotes();
+    } else if (this.props.isSelectBook) {
+      this.props.selectedBooks.forEach((item) => {
+        AddTrash.setTrash(item);
+        //从喜爱的图书中删除
+        AddFavorite.clear(item);
+      });
+      this.props.handleSelectedBooks([]);
+      this.props.handleFetchBooks(false);
+      this.props.handleSelectBook(!this.props.isSelectBook);
     } else {
       AddTrash.setTrash(this.props.currentBook.key);
       //从喜爱的图书中删除
@@ -63,8 +81,7 @@ class DeleteDialog extends React.Component<DeleteDialogProps> {
     }
 
     this.props.handleDeleteDialog(false);
-    this.props.handleMessage("Delete Successfully");
-    this.props.handleMessageBox(true);
+    toast.success(this.props.t("Delete Successfully"));
   };
   deleteBook = (key: string) => {
     return new Promise<void>((resolve, reject) => {
@@ -111,7 +128,16 @@ class DeleteDialog extends React.Component<DeleteDialogProps> {
         {this.props.mode === "trash" ? null : (
           <div className="delete-dialog-book">
             <div className="delete-dialog-book-title">
-              {this.props.currentBook.name}
+              {this.props.isSelectBook ? (
+                <Trans
+                  i18nKey="Total books"
+                  count={this.props.selectedBooks.length}
+                >
+                  {"Total " + this.props.selectedBooks.length + " books"}
+                </Trans>
+              ) : (
+                this.props.currentBook.name
+              )}
             </div>
           </div>
         )}

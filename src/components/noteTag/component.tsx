@@ -147,7 +147,9 @@ class NoteTag extends React.Component<NoteTagProps, NoteTagState> {
           </div>
         )}
 
-        {(this.state.isShowTags || this.props.isReading) && (
+        {(this.state.isShowTags ||
+          this.props.isReading ||
+          this.props.isCard) && (
           <ul className="tag-container">
             {!this.props.isCard && (
               <li

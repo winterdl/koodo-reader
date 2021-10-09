@@ -8,7 +8,8 @@ import { OperationPanelProps, OperationPanelState } from "./interface";
 import OtherUtil from "../../../utils/otherUtil";
 import ReadingTime from "../../../utils/readUtils/readingTime";
 import { withRouter } from "react-router-dom";
-
+import { isElectron } from "react-device-detect";
+import toast from "react-hot-toast";
 declare var document: any;
 
 class OperationPanel extends React.Component<
@@ -153,8 +154,7 @@ class OperationPanel extends React.Component<
       this.props.handleBookmarks(bookmarkArr);
       localforage.setItem("bookmarks", bookmarkArr);
       this.setState({ isBookmark: true });
-      this.props.handleMessage("Add Successfully");
-      this.props.handleMessageBox(true);
+      toast.success(this.props.t("Add Successfully"));
       this.props.handleShowBookmark(true);
     });
   }
@@ -168,10 +168,14 @@ class OperationPanel extends React.Component<
     // this.props.handleSearch(false);
     // this.props.handleOpenMenu(false);
     ReadingTime.setTime(this.props.currentBook.key, this.props.time);
-    OtherUtil.setReaderConfig("windowWidth", document.body.clientWidth);
-    OtherUtil.setReaderConfig("windowHeight", document.body.clientHeight);
-    OtherUtil.setReaderConfig("windowX", window.screenX + "");
-    OtherUtil.setReaderConfig("windowY", window.screenY + "");
+    if (isElectron) {
+      const { ipcRenderer } = window.require("electron");
+      let bounds = ipcRenderer.sendSync("reader-bounds", "ping");
+      OtherUtil.setReaderConfig("windowWidth", bounds.width);
+      OtherUtil.setReaderConfig("windowHeight", bounds.height);
+      OtherUtil.setReaderConfig("windowX", bounds.x);
+      OtherUtil.setReaderConfig("windowY", bounds.y);
+    }
   }
 
   render() {
@@ -232,8 +236,7 @@ class OperationPanel extends React.Component<
             if (this.props.currentEpub.rendition) {
               this.handleAddBookmark();
             } else {
-              this.props.handleMessage("Not supported yet");
-              this.props.handleMessageBox(true);
+              toast(this.props.t("Not supported yet"));
             }
           }}
         >

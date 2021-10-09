@@ -10,8 +10,6 @@ export interface ImportLocalProps extends RouteComponentProps<any> {
   isCollapsed: boolean;
 
   bookmarks: BookmarkModel[];
-  handleMessageBox: (isShow: boolean) => void;
-  handleMessage: (message: string) => void;
   handleFetchBooks: () => void;
   handleDrag: (isDrag: boolean) => void;
   handleReadingBook: (book: BookModel) => void;
@@ -19,5 +17,7 @@ export interface ImportLocalProps extends RouteComponentProps<any> {
 }
 export interface ImportLocalState {
   isOpenFile: boolean;
+  isKindleSuccess: boolean;
+  tempFile: any;
   width: number;
 }

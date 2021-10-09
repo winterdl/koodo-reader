@@ -5,7 +5,6 @@
 </div>
 
 <div align="center">
-
   <img src="https://i.loli.net/2021/07/30/ZKNMmz54Q3uqlrW.png" width="96px" height="96px"/>
 </div>
 
@@ -19,7 +18,7 @@
 
 <div align="center">
 
-[下载](https://koodo.960960.xyz/download) | [预览](https://koodo-reader.vercel.app/) | [反馈](https://koodo.960960.xyz/support) | [文档](https://www.notion.so/troyeguo/e9c4e5755d564b0db6340eeba6d9ece9?v=7c8fcbed9adf4592ada95cfd593868c9)
+[下载](https://koodo.960960.xyz/zh/download) | [预览](https://koodo-reader.vercel.app/) | [反馈](https://koodo.960960.xyz/zh/support) | [文档](https://www.notion.so/troyeguo/e9c4e5755d564b0db6340eeba6d9ece9?v=7c8fcbed9adf4592ada95cfd593868c9)
 
 </div>
 
@@ -37,14 +36,14 @@
 ## 特色
 
 - 支持阅读格式：
-  - EPUB (.epub)
-  - 扫描文档 (.pdf, .djvu)
-  - Kindle (.azw3, .mobi)
-  - 纯文本 (.txt)
-  - 漫画 (.cbr, .cbz, .cbt)
-  - 富文本 (.md, .docx, .rtf)
-  - 超文本 (.html, .xml)
-  - FB2 (.fb2)
+  - EPUB (**.epub**)
+  - 扫描文档 (**.pdf**, **.djvu**)
+  - Kindle (**.azw3**, **.mobi**)
+  - 纯文本 (**.txt**)
+  - 漫画 (**.cbr**, **.cbz**, **.cbt**)
+  - 富文本 (**.md**, **.docx**, **.rtf**)
+  - 超文本 (**.html**, **.xml**)
+  - FB2 (**.fb2**)
 - 支持 **Windows**，**macOS**，**Linux** 和 **网页版**
 - 备份数据到 **Dropbox** 和 **Webdav**
 - 自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步
@@ -56,9 +55,11 @@
 
 ## 使用方法
 
-- 桌面端：[Github](https://github.com/troyeguo/koodo-reader/releases/latest) | [蓝奏云](https://wwa.lanzoui.com/b0c90cieb) 密码：1234 | [历史版本](https://wwa.lanzoui.com/b0c97tupi) 密码：1234
+- 桌面端：
+  - 稳定版 (推荐下载)：[蓝奏云](https://wwa.lanzoui.com/b0c90cieb) 密码：1234 | [历史版本](https://wwa.lanzoui.com/b0c97tupi) 密码：1234
+  - 开发版：[Github Release](https://github.com/troyeguo/koodo-reader/releases/latest) （包含新功能和 bug 修复，但也可能引入更多未知 bug）
 - 网页版：[前往](https://koodo-reader.vercel.app/)
-- 使用 [Homebrew](https://brew.sh/) 安装：
+- 使用 Homebrew 安装：
 
 ```shell
 brew install --cask koodo-reader
@@ -98,7 +99,6 @@ docker-compose up -d
     <img src="https://i.loli.net/2021/08/09/sARQBoefvGklHwC.png" >
   </a>
 </div>
-
 ## 运行源码
 
 请确保您电脑的 node 的版本大于 10.0.0，已配置好 yarn，git 的运行环境。

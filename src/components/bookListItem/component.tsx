@@ -12,7 +12,8 @@ import EmptyCover from "../emptyCover";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import FileSaver from "file-saver";
 import localforage from "localforage";
-
+import { isElectron } from "react-device-detect";
+import toast from "react-hot-toast";
 class BookListItem extends React.Component<BookItemProps, BookItemState> {
   epub: any;
   constructor(props: BookItemProps) {
@@ -23,36 +24,23 @@ class BookListItem extends React.Component<BookItemProps, BookItemState> {
     };
   }
   componentDidMount() {
+    let filePath = "";
     //控制是否自动打开本书
+    if (isElectron) {
+      const { ipcRenderer } = window.require("electron");
+      filePath = ipcRenderer.sendSync("get-file-data");
+    }
     if (
       OtherUtil.getReaderConfig("isOpenBook") === "yes" &&
       RecentBooks.getAllRecent()[0] === this.props.book.key &&
-      !this.props.currentBook.key
+      !this.props.currentBook.key &&
+      !filePath
     ) {
       BookUtil.RedirectBook(this.props.book);
     }
     this.props.handleReadingBook(this.props.book);
   }
-  componentWillReceiveProps(nextProps: BookItemProps) {
-    if (nextProps.isDragToLove !== this.props.isDragToLove) {
-      if (
-        nextProps.isDragToLove &&
-        this.props.dragItem === this.props.book.key
-      ) {
-        this.handleLoveBook();
-        this.props.handleDragToLove(false);
-      }
-    }
-    if (nextProps.isDragToDelete !== this.props.isDragToDelete) {
-      if (
-        nextProps.isDragToDelete &&
-        this.props.dragItem === this.props.book.key
-      ) {
-        this.handleDeleteBook();
-        this.props.handleDragToDelete(false);
-      }
-    }
-  }
+
   handleDeleteBook = () => {
     this.props.handleDeleteDialog(true);
     this.props.handleReadingBook(this.props.book);
@@ -68,22 +56,29 @@ class BookListItem extends React.Component<BookItemProps, BookItemState> {
   handleLoveBook = () => {
     AddFavorite.setFavorite(this.props.book.key);
     this.setState({ isFavorite: true });
-    this.props.handleMessage("Add Successfully");
-    this.props.handleMessageBox(true);
+    toast.success(this.props.t("Add Successfully"));
   };
   handleCancelLoveBook = () => {
     AddFavorite.clear(this.props.book.key);
     this.setState({ isFavorite: false });
-    this.props.handleMessage("Cancel Successfully");
-    this.props.handleMessageBox(true);
+    toast.success(this.props.t("Cancel Successfully"));
   };
   handleResoreBook = () => {
     AddTrash.clear(this.props.currentBook.key);
-    this.props.handleMessage("Restore Successfully");
-    this.props.handleMessageBox(true);
+    toast.success(this.props.t("Restore Successfully"));
     this.props.handleFetchBooks();
   };
   handleJump = () => {
+    if (this.props.isSelectBook) {
+      this.props.handleSelectedBooks(
+        this.props.isSelected
+          ? this.props.selectedBooks.filter(
+              (item) => item !== this.props.book.key
+            )
+          : [...this.props.selectedBooks, this.props.book.key]
+      );
+      return;
+    }
     RecentBooks.setRecent(this.props.book.key);
     BookUtil.RedirectBook(this.props.book);
   };
@@ -106,24 +101,12 @@ class BookListItem extends React.Component<BookItemProps, BookItemState> {
             onClick={() => {
               this.handleJump();
             }}
-            onDragStart={() => {
-              this.props.handleDragItem(this.props.book.key);
-            }}
-            onDragEnd={() => {
-              this.props.handleDragItem("");
-            }}
           />
         ) : (
           <div
             className="book-item-list-cover"
             onClick={() => {
               this.handleJump();
-            }}
-            onDragStart={() => {
-              this.props.handleDragItem(this.props.book.key);
-            }}
-            onDragEnd={() => {
-              this.props.handleDragItem("");
             }}
           >
             <EmptyCover
@@ -135,6 +118,12 @@ class BookListItem extends React.Component<BookItemProps, BookItemState> {
             />
           </div>
         )}
+        {this.props.isSelectBook && this.props.isSelected ? (
+          <span
+            className="icon-message book-selected-icon"
+            style={{ left: "35px", bottom: "5px" }}
+          ></span>
+        ) : null}
         <p
           className="book-item-list-title"
           onClick={() => {
@@ -204,8 +193,8 @@ class BookListItem extends React.Component<BookItemProps, BookItemState> {
                 localforage
                   .getItem(this.props.currentBook.key)
                   .then((result: any) => {
-                    this.props.handleMessage("Export Successfully");
-                    this.props.handleMessageBox(true);
+                    toast.success(this.props.t("Export Successfully"));
+
                     FileSaver.saveAs(
                       new Blob([result]),
                       this.props.currentBook.name +

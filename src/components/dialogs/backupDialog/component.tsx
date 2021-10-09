@@ -12,6 +12,7 @@ import OtherUtil from "../../../utils/otherUtil";
 import Lottie from "react-lottie";
 import animationSuccess from "../../../assets/lotties/success.json";
 import FileSaver from "file-saver";
+import toast from "react-hot-toast";
 const successOptions = {
   loop: false,
   autoplay: true,
@@ -39,7 +40,7 @@ class BackupDialog extends React.Component<
   handleFinish = () => {
     this.setState({ currentStep: 2 });
     this.props.handleLoadingDialog(false);
-    this.showMessage("Sync Successfully");
+    this.showMessage("Excute Successfully");
   };
   handleRestoreToLocal = async (event: any) => {
     event.preventDefault();
@@ -49,8 +50,7 @@ class BackupDialog extends React.Component<
     }
   };
   showMessage = (message: string) => {
-    this.props.handleMessage(message);
-    this.props.handleMessageBox(true);
+    toast(this.props.t(message));
   };
   handleDrive = (index: number) => {
     let year = new Date().getFullYear(),

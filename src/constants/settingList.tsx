@@ -2,21 +2,48 @@ export const settingList = [
   {
     isElectron: false,
     title: "Turn on touch screen mode",
+    desc: "Gesture and UI optimization for touch screen",
     propName: "isTouch",
   },
   {
     isElectron: false,
+    title: "Prevent accidental trigger",
+    desc:
+      "Reader menu will not be triggered by hovering but clicking on the area",
+    propName: "isPreventTrigger",
+  },
+  {
+    isElectron: true,
+    title: "Import books as referrence",
+    desc:
+      "The imported books will not be copied to library, only linked to the original book path",
+    propName: "isImportPath",
+  },
+  {
+    isElectron: true,
+    title: "Merge reader into Word",
+    desc:
+      "Get rid of window Frame and mimical background, make reader hide into Word or any text editor, and can't be detected",
+    propName: "isMergeWord",
+  },
+  {
+    isElectron: false,
     title: "Auto open latest book",
+    desc:
+      "The book that you read from last time will be open automatically when launching",
     propName: "isOpenBook",
   },
   {
     isElectron: true,
     title: "Auto open book in fullscreen",
+    desc:
+      "Reader window will be maximized to fit the screen when opening a book",
     propName: "isAutoFullscreen",
   },
   {
     isElectron: false,
     title: "Default expand all content",
+    desc: "All the folded content will be expanded in the navigation panel",
     propName: "isExpandContent",
   },
   {
@@ -41,6 +68,7 @@ export const langList = [
   { label: "English", value: "en" },
   { label: "русский", value: "ru" },
 ];
+
 export const searchList = [
   { label: "Google", value: "google" },
   { label: "Baidu", value: "baidu" },
@@ -50,6 +78,10 @@ export const searchList = [
   { label: "Yahoo", value: "yahoo" },
 ];
 export const readerSettingList = [
+  {
+    title: "Text Indent",
+    propName: "isIndent",
+  },
   {
     title: "Bold Font",
     propName: "isBold",
@@ -80,7 +112,7 @@ export const readerSettingList = [
   },
   {
     title: "Dont't use mimical background",
-    propName: "isUseBackground",
+    propName: "isHideBackground",
   },
   {
     title: "Hide navigation button",
@@ -88,6 +120,10 @@ export const readerSettingList = [
   },
 ];
 export const htmlSettingList = [
+  {
+    title: "Text Indent",
+    propName: "isIndent",
+  },
   {
     title: "Bold Font",
     propName: "isBold",
@@ -103,5 +139,9 @@ export const htmlSettingList = [
   {
     title: "Text Shadow",
     propName: "isShadow",
+  },
+  {
+    title: "Dont't use mimical background",
+    propName: "isHideBackground",
   },
 ];

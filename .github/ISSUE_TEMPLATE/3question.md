@@ -1,7 +1,9 @@
 ---
 name: Question
-about: Do you have any questions for Koodo Reader
-title: ""
+about: Do you have any questions about Koodo Reader
 labels: "question"
-assignees: ""
 ---
+
+<!--
+  This issue template is for asking questions about Koodo Reader  not for bug report or feature request.
+-->

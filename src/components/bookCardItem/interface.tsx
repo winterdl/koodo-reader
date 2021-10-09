@@ -5,16 +5,15 @@ export interface BookCardProps extends RouteComponentProps<any> {
   book: BookModel;
   currentBook: BookModel;
   isOpenActionDialog: boolean;
-  isDragToLove: boolean;
-  isDragToDelete: boolean;
+  isSelectBook: boolean;
+  isSelected: boolean;
   dragItem: string;
+  selectedBooks: string[];
   handleReadingBook: (book: BookModel) => void;
   handleActionDialog: (isShowActionDialog: boolean) => void;
-  handleMessage: (message: string) => void;
-  handleMessageBox: (isShow: boolean) => void;
+  t: (title: string) => string;
   handleDragItem: (key: string) => void;
-  handleDragToLove: (isDragToLove: boolean) => void;
-  handleDragToDelete: (isDragToDelete: boolean) => void;
+  handleSelectedBooks: (selectedBooks: string[]) => void;
   handleDeleteDialog: (isShow: boolean) => void;
 }
 export interface BookCardState {

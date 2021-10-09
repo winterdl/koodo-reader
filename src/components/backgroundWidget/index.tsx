@@ -1,11 +1,9 @@
 import { connect } from "react-redux";
 import { stateType } from "../../store";
-import MessageBox from "./component";
+import Background from "./component";
 
 const mapStateToProps = (state: stateType) => {
-  return {
-    message: state.manager.message,
-  };
+  return { currentEpub: state.book.currentEpub };
 };
 const actionCreator = {};
-export default connect(mapStateToProps, actionCreator)(MessageBox);
+export default connect(mapStateToProps, actionCreator)(Background);

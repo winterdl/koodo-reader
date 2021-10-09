@@ -17,7 +17,7 @@
 </h3>
 <div align="center">
 
-[Download](https://koodo.960960.xyz/download) | [Preview](https://koodo-reader.vercel.app/) | [Feedback](https://koodo.960960.xyz/support) | [Document](https://www.notion.so/troyeguo/01aaa516687c418499f713d34793b9ad?v=54d51fe1688a4f8ab5784b17e4df3308)
+[Download](https://koodo.960960.xyz/en/download) | [Preview](https://koodo-reader.vercel.app/) | [Feedback](https://koodo.960960.xyz/en/support) | [Document](https://www.notion.so/troyeguo/01aaa516687c418499f713d34793b9ad?v=54d51fe1688a4f8ab5784b17e4df3308)
 
 </div>
 
@@ -35,30 +35,31 @@
 ## Feature
 
 - Format support:
-  - EPUB (.epub)
-  - Scanned document (.pdf, .djvu)
-  - Kindle (.azw3) and Mobipocket (.mobi)
-  - Plain text (.txt)
-  - FictionBook (.fb2)
-  - Comic book archive (.cbr, .cbz, .cbt)
-  - Rich text (.md, .docx, .rtf)
-  - Hyper Text (.html, .xml)
+  - EPUB (**.epub**)
+  - Scanned document (**.pdf**, **.djvu**)
+  - Kindle (**.azw3**) and Mobipocket (**.mobi**)
+  - Plain text (**.txt**)
+  - FictionBook (**.fb2**)
+  - Comic book archive (**.cbr**, **.cbz**, **.cbt**)
+  - Rich text (**.md**, **.docx**, **.rtf**)
+  - Hyper Text (**.html**, **.xml**)
 - Platform support: **Windows** , **macOS**, **Linux** and **Web**
 - Save your data to **Dropbox** or **Webdav**
 - Customize the source folder and synchronize among multiple devices using OneDrive, iCloud, Dropbox, etc.
 - Single-column, two-column, or continuous scrolling layouts
 - Text-to-speech, translation, progress slider, touch screen support, batch import
 - Add bookmarks, notes, highlights to your books
-- Origanize your books and notes with shelf and tag
 - Adjust font size, font family, line-spacing, paragraph spacing, background color, text color, margins, and brightness
 - Night mode and theme color
 - Text highlight, underline, boldness, italics and shadow
 
 ## Installation
 
-- Desktop Version: [Download](https://koodo.960960.xyz/download)
+- Desktop Version:
+  - Stable Version (Recommended): [Download](https://koodo.960960.xyz/en/download)
+  - Developer Version: [Download](https://github.com/troyeguo/koodo-reader/releases/latest) ( With new feature and bug fix, but may induce some unknown bugs)
 - Web Version：[Preview](https://koodo-reader.vercel.app/)
-- Install with [Homebrew](https://brew.sh/):
+- Install with Homebrew:
 
 ```shell
 brew install --cask koodo-reader
@@ -100,9 +101,11 @@ docker-compose up -d
 
 </div>
 
+</div>
+
 ## Develop
 
-Make sure node's version on your computer is larger than 10.0.0, yarn and git is in place.
+Make sure that you have installed yarn and git, node's version on your computer is larger than 14.0.0.
 
 1. Download the repo
 

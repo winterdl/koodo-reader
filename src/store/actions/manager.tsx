@@ -32,13 +32,7 @@ export function handleAbout(isAboutOpen: boolean) {
 export function handleViewMode(mode: string) {
   return { type: "HANDLE_VIEW_MODE", payload: mode };
 }
-export function handleMessage(message: string) {
-  return { type: "HANDLE_MESSAGE", payload: message };
-}
 
-export function handleMessageBox(isShow: boolean) {
-  return { type: "HANDLE_MESSAGE_BOX", payload: isShow };
-}
 export function handleSortDisplay(isSortDisplay: boolean) {
   return { type: "HANDLE_SORT_DISPLAY", payload: isSortDisplay };
 }
@@ -47,6 +41,12 @@ export function handleLoadingDialog(isShowLoading: boolean) {
 }
 export function handleNewDialog(isShowNew: boolean) {
   return { type: "HANDLE_SHOW_NEW", payload: isShowNew };
+}
+export function handleSelectBook(isSelectBook: boolean) {
+  return { type: "HANDLE_SELECT_BOOK", payload: isSelectBook };
+}
+export function handleSelectedBooks(selectedBooks: string[]) {
+  return { type: "HANDLE_SELECTED_BOOKS", payload: selectedBooks };
 }
 export function handleNewWarning(isNewWarning: boolean) {
   return { type: "HANDLE_NEW_WARNING", payload: isNewWarning };
