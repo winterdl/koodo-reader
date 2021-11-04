@@ -4,7 +4,7 @@ import "./bookCardItem.css";
 import { BookCardProps, BookCardState } from "./interface";
 import AddFavorite from "../../utils/readUtils/addFavorite";
 import ActionDialog from "../dialogs/actionDialog";
-import OtherUtil from "../../utils/otherUtil";
+import StorageUtil from "../../utils/storageUtil";
 import { withRouter } from "react-router-dom";
 import RecordLocation from "../../utils/readUtils/recordLocation";
 import { isElectron } from "react-device-detect";
@@ -36,17 +36,22 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
     }
 
     if (
-      OtherUtil.getReaderConfig("isOpenBook") === "yes" &&
+      StorageUtil.getReaderConfig("isOpenBook") === "yes" &&
       RecentBooks.getAllRecent()[0] === this.props.book.key &&
       !this.props.currentBook.key &&
       !filePath
     ) {
-      BookUtil.RedirectBook(this.props.book);
+      this.props.handleReadingBook(this.props.book);
+      if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
+        this.props.history.push(BookUtil.getBookUrl(this.props.book));
+      } else {
+        BookUtil.RedirectBook(this.props.book);
+      }
     }
-    this.props.handleReadingBook(this.props.book);
   }
 
   handleMoreAction = (event: any) => {
+    event.preventDefault();
     const e = event || window.event;
     let x = e.clientX;
     if (x > document.body.clientWidth - 300) {
@@ -81,6 +86,7 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
     this.setState({ isFavorite: false });
     if (Object.keys(AddFavorite.getAllFavorite()).length === 0) {
       this.props.history.push("/manager/empty");
+      document.title = "Koodo Reader";
     }
     toast.success(this.props.t("Cancel Successfully"));
   };
@@ -100,7 +106,12 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
       return;
     }
     RecentBooks.setRecent(this.props.book.key);
-    BookUtil.RedirectBook(this.props.book);
+    this.props.handleReadingBook(this.props.book);
+    if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
+      this.props.history.push(BookUtil.getBookUrl(this.props.book));
+    } else {
+      BookUtil.RedirectBook(this.props.book);
+    }
   };
   render() {
     let percentage = RecordLocation.getCfi(this.props.book.key)
@@ -116,6 +127,9 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
           }}
           onMouseLeave={() => {
             this.handleConfig(false);
+          }}
+          onContextMenu={(event) => {
+            this.handleMoreAction(event);
           }}
         >
           {this.props.book.cover &&
@@ -150,7 +164,7 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
 
           <p className="book-item-title">{this.props.book.name}</p>
 
-          {this.state.isFavorite ? (
+          {this.state.isFavorite && !this.props.isSelectBook ? (
             <span
               className="icon-love book-loved-icon"
               onClick={() => {

@@ -1,7 +1,8 @@
 import React from "react";
 import "./contentList.css";
 import { ContentListProps, ContentListState } from "./interface";
-import OtherUtil from "../../../utils/otherUtil";
+import StorageUtil from "../../../utils/storageUtil";
+import _ from "underscore";
 class ContentList extends React.Component<ContentListProps, ContentListState> {
   constructor(props: ContentListProps) {
     super(props);
@@ -9,7 +10,8 @@ class ContentList extends React.Component<ContentListProps, ContentListState> {
       chapters: [],
       isCollapsed: true,
       currentIndex: -1,
-      isExpandContent: OtherUtil.getReaderConfig("isExpandContent") === "yes",
+      currentChapter: "",
+      isExpandContent: StorageUtil.getReaderConfig("isExpandContent") === "yes",
     };
     this.handleJump = this.handleJump.bind(this);
   }
@@ -39,10 +41,10 @@ class ContentList extends React.Component<ContentListProps, ContentListState> {
       this.props.currentEpub.rendition.display(href);
     } else {
       let id = href.substr(1);
-
-      var top = window.frames[0].document.getElementById(id)?.offsetTop;
-      if (!top) return;
-      document.getElementsByClassName("ebook-viewer")[0].scrollTo(0, top);
+      let title = this.state.chapters[_.findIndex(this.state.chapters, { id })]
+        .label;
+      this.props.htmlBook.rendition.goToChapter(title);
+      this.props.handleCurrentChapter(title);
     }
   }
   UNSAFE_componentWillReceiveProps(nextProps: ContentListProps) {
@@ -80,7 +82,9 @@ class ContentList extends React.Component<ContentListProps, ContentListState> {
               onClick={this.handleJump}
               className="book-content-name"
             >
-              {item.label}
+              {item.label.indexOf("#") > -1
+                ? item.label.split("#")[0]
+                : item.label}
             </a>
             {item.subitems.length > 0 &&
             (this.state.currentIndex === index ||

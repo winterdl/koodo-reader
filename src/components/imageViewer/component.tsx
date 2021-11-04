@@ -39,12 +39,15 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerStates> {
       this.props.handleLeaveReader("bottom");
     }
     let href;
+
     if (
       event.target &&
       event.target.parentNode &&
       event.target.parentNode.parentNode
     ) {
       href =
+        (event.target.innerText.indexOf("http") > -1 &&
+          event.target.innerText) ||
         event.target.src ||
         event.target.href ||
         event.target.parentNode.href ||
@@ -52,8 +55,8 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerStates> {
         "";
     }
     if (
-      isElectron &&
       href &&
+      href.indexOf("http") === 0 &&
       href.indexOf("OEBPF") === -1 &&
       href.indexOf("OEBPS") === -1 &&
       href.indexOf("footnote") === -1 &&
@@ -62,18 +65,12 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerStates> {
       href.indexOf(".htm") === -1
     ) {
       event.preventDefault();
-      const { shell } = window.require("electron");
-      const { dialog } = window.require("electron").remote;
-      dialog
-        .showMessageBox({
-          type: "question",
-          title: this.props.t("Open link in browser"),
-          message: this.props.t("Do you want to open this link in browser"),
-          buttons: [this.props.t("Confirm"), this.props.t("Cancel")],
-        })
-        .then((result) => {
-          result.response === 0 && shell.openExternal(href);
-        });
+      if (isElectron) {
+        const { shell } = window.require("electron");
+        shell.openExternal(href);
+      } else {
+        window.open(href);
+      }
     }
     if (!event.target.src) {
       return;

@@ -1,5 +1,5 @@
-name: 问题反馈
-description: 我在使用 Koodo Reader 时遇到了问题
+name: 提交Bug
+description: 我在使用 Koodo Reader 时遇到了Bug
 labels: "bug"
 body:
   - type: checkboxes
@@ -25,7 +25,7 @@ body:
     id: testing3
     attributes:
       label: 我已经阅读了 Koodo Reader 的帮助文档，仍然无法解决
-      description: https://www.notion.so/troyeguo/e9c4e5755d564b0db6340eeba6d9ece9?v=7c8fcbed9adf4592ada95cfd593868c9
+      description: https://troyeguo.notion.site/Koodo-Reader-0c9c7ccdc5104a54825dfc72f1c84bea
       options:
         - label: "Yes"
     validations:
@@ -34,12 +34,18 @@ body:
   - type: dropdown
     id: os
     attributes:
-      label: 操作系统
+      label: 操作系统或浏览器
       options:
-        - Windows
-        - macOS
-        - Linux
-        - 网页版
+        - Windows 10及以下
+        - Windows 11
+        - macOS 10及以下
+        - macOS 11
+        - macOS 12
+        - Ubuntu
+        - 其他Linux发行版
+        - Chrome及其他Chromium浏览器(包括Edge和所有国产浏览器)
+        - Firefox
+        - IE
     validations:
       required: true
 

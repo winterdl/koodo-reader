@@ -5,10 +5,9 @@ import { Trans } from "react-i18next";
 import localforage from "localforage";
 import RecordLocation from "../../../utils/readUtils/recordLocation";
 import { OperationPanelProps, OperationPanelState } from "./interface";
-import OtherUtil from "../../../utils/otherUtil";
+import StorageUtil from "../../../utils/storageUtil";
 import ReadingTime from "../../../utils/readUtils/readingTime";
 import { withRouter } from "react-router-dom";
-import { isElectron } from "react-device-detect";
 import toast from "react-hot-toast";
 declare var document: any;
 
@@ -24,7 +23,7 @@ class OperationPanel extends React.Component<
     super(props);
     this.state = {
       isFullScreen:
-        OtherUtil.getReaderConfig("isFullScreen") === "yes" ? true : false, // 是否进入全屏模式
+        StorageUtil.getReaderConfig("isFullScreen") === "yes" ? true : false, // 是否进入全屏模式
       isBookmark: false, // 是否添加书签
       time: 0,
       currentPercentage: RecordLocation.getCfi(this.props.currentBook.key)
@@ -35,11 +34,7 @@ class OperationPanel extends React.Component<
     this.timeStamp = Date.now();
     this.speed = 30000;
   }
-  componentDidMount() {
-    window.onbeforeunload = () => {
-      this.handleExit();
-    };
-  }
+
   componentWillReceiveProps(nextProps: OperationPanelProps) {
     if (
       nextProps.currentEpub.rendition &&
@@ -73,7 +68,14 @@ class OperationPanel extends React.Component<
       ? this.handleFullScreen()
       : this.handleExitFullScreen();
   }
-
+  // 点击退出按钮的处理程序
+  handleExit() {
+    StorageUtil.setReaderConfig("isFullScreen", "no");
+    this.props.handleReadingState(false);
+    window.speechSynthesis.cancel();
+    ReadingTime.setTime(this.props.currentBook.key, this.props.time);
+    this.handleExitFullScreen();
+  }
   //控制进入全屏
   handleFullScreen() {
     let de: any = document.documentElement;
@@ -88,7 +90,7 @@ class OperationPanel extends React.Component<
     }
 
     this.setState({ isFullScreen: true });
-    OtherUtil.setReaderConfig("isFullScreen", "yes");
+    StorageUtil.setReaderConfig("isFullScreen", "yes");
   }
   // 退出全屏模式
   handleExitFullScreen() {
@@ -106,7 +108,7 @@ class OperationPanel extends React.Component<
     }
 
     this.setState({ isFullScreen: false });
-    OtherUtil.setReaderConfig("isFullScreen", "no");
+    StorageUtil.setReaderConfig("isFullScreen", "no");
   }
   handleAddBookmark() {
     let bookKey = this.props.currentBook.key;
@@ -159,25 +161,6 @@ class OperationPanel extends React.Component<
     });
   }
 
-  // 点击退出按钮的处理程序
-  handleExit() {
-    OtherUtil.setReaderConfig("isFullScreen", "no");
-    // window.speechSynthesis && window.speechSynthesis.cancel();
-    // this.handleExitFullScreen();
-    // this.props.handleReadingState(false);
-    // this.props.handleSearch(false);
-    // this.props.handleOpenMenu(false);
-    ReadingTime.setTime(this.props.currentBook.key, this.props.time);
-    if (isElectron) {
-      const { ipcRenderer } = window.require("electron");
-      let bounds = ipcRenderer.sendSync("reader-bounds", "ping");
-      OtherUtil.setReaderConfig("windowWidth", bounds.width);
-      OtherUtil.setReaderConfig("windowHeight", bounds.height);
-      OtherUtil.setReaderConfig("windowX", bounds.x);
-      OtherUtil.setReaderConfig("windowY", bounds.y);
-    }
-  }
-
   render() {
     return (
       <div className="book-operation-panel">
@@ -222,7 +205,12 @@ class OperationPanel extends React.Component<
           className="exit-reading-button"
           onClick={() => {
             this.handleExit();
-            window.close();
+            if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
+              this.props.history.push("/manager/home");
+              document.title = "Koodo Reader";
+            } else {
+              window.close();
+            }
           }}
         >
           <span className="icon-exit exit-reading-icon"></span>

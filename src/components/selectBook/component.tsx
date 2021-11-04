@@ -82,6 +82,26 @@ class SelectBook extends React.Component<BookListProps, BookListState> {
             >
               <Trans>Export</Trans>
             </span>
+            <span
+              className="book-manage-title"
+              onClick={() => {
+                if (
+                  this.props.selectedBooks.length === this.props.books.length
+                ) {
+                  this.props.handleSelectedBooks([]);
+                } else {
+                  this.props.handleSelectedBooks(
+                    this.props.books.map((item) => item.key)
+                  );
+                }
+              }}
+            >
+              {this.props.selectedBooks.length === this.props.books.length ? (
+                <Trans>Deselect All</Trans>
+              ) : (
+                <Trans>Select All</Trans>
+              )}
+            </span>{" "}
           </>
         )}
       </div>

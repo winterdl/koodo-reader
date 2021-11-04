@@ -6,10 +6,10 @@ import NavigationPanel from "../panels/navigationPanel";
 import OperationPanel from "../panels/operationPanel";
 import ProgressPanel from "../panels/progressPanel";
 import { ReaderProps, ReaderState } from "./interface";
-import { MouseEvent } from "../../utils/mouseEvent";
-import OtherUtil from "../../utils/otherUtil";
+import { EpubMouseEvent } from "../../utils/mouseEvent";
+import StorageUtil from "../../utils/storageUtil";
 import ReadingTime from "../../utils/readUtils/readingTime";
-import { isElectron } from "react-device-detect";
+let lock = false;
 class Reader extends React.Component<ReaderProps, ReaderState> {
   messageTimer!: NodeJS.Timeout;
   tickTimer!: NodeJS.Timeout;
@@ -19,19 +19,20 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
     super(props);
     this.state = {
       isOpenRightPanel:
-        OtherUtil.getReaderConfig("isSettingLocked") === "yes" ? true : false,
+        StorageUtil.getReaderConfig("isSettingLocked") === "yes" ? true : false,
       isOpenTopPanel: false,
       isOpenBottomPanel: false,
       isOpenLeftPanel:
-        OtherUtil.getReaderConfig("isNavLocked") === "yes" ? true : false,
+        StorageUtil.getReaderConfig("isNavLocked") === "yes" ? true : false,
       rendition: null,
       hoverPanel: "",
-      scale: OtherUtil.getReaderConfig("scale") || 1,
-      margin: parseInt(OtherUtil.getReaderConfig("margin")) || 30,
+      scale: StorageUtil.getReaderConfig("scale") || 1,
+      margin: parseInt(StorageUtil.getReaderConfig("margin")) || 30,
       time: ReadingTime.getTime(this.props.currentBook.key),
-      isTouch: OtherUtil.getReaderConfig("isTouch") === "yes",
-      isPreventTrigger: OtherUtil.getReaderConfig("isPreventTrigger") === "yes",
-      readerMode: OtherUtil.getReaderConfig("readerMode") || "double",
+      isTouch: StorageUtil.getReaderConfig("isTouch") === "yes",
+      isPreventTrigger:
+        StorageUtil.getReaderConfig("isPreventTrigger") === "yes",
+      readerMode: StorageUtil.getReaderConfig("readerMode") || "double",
     };
   }
   componentWillMount() {
@@ -45,28 +46,28 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
   componentDidMount() {
     this.handleRenderBook();
     this.props.handleRenderFunc(this.handleRenderBook);
+    var doit;
     window.addEventListener("resize", () => {
-      this.handleRenderBook();
+      if (StorageUtil.getReaderConfig("readerMode") === "single") {
+        return;
+      }
+      clearTimeout(doit);
+      doit = setTimeout(this.handleRenderBook, 100);
     });
     this.tickTimer = global.setInterval(() => {
       let time = this.state.time;
       time += 1;
-      let page = document.querySelector("#page-area");
+      this.setState({ time });
+
       //解决快速翻页过程中图书消失的bug
       let renderedBook = document.querySelector(".epub-view");
       if (
         renderedBook &&
         !renderedBook.innerHTML &&
-        this.state.readerMode !== "continuous"
+        this.state.readerMode !== "scroll"
       ) {
         this.handleRenderBook();
       }
-      let ele = page!.getElementsByClassName("epub-container")[0];
-      if (page!.getElementsByClassName("epub-container").length > 1 && ele) {
-        ele.parentNode?.removeChild(ele);
-      }
-      this.setState({ time });
-      this.handleRecord();
     }, 1000);
   }
   componentWillUnmount() {
@@ -75,37 +76,27 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
   handleRenderBook = () => {
     let page = document.querySelector("#page-area");
     let epub = this.props.currentEpub;
-    if (page!.innerHTML) {
-      page!.innerHTML = "";
+    if (!page) return;
+    if (page.innerHTML) {
+      page.innerHTML = "";
     }
 
     this.setState({ rendition: null }, () => {
       (window as any).rangy.init(); // 初始化
       this.rendition = epub.renderTo(page, {
-        manager:
-          this.state.readerMode === "continuous" ? "continuous" : "default",
-        flow: this.state.readerMode === "continuous" ? "scrolled" : "auto",
+        manager: "default",
+        flow: this.state.readerMode === "scroll" ? "scrolled" : "auto",
         width: "100%",
         height: "100%",
         snap: true,
         spread:
-          OtherUtil.getReaderConfig("readerMode") === "single" ? "none" : "",
+          StorageUtil.getReaderConfig("readerMode") === "single" ? "none" : "",
       });
       this.setState({ rendition: this.rendition });
-      this.state.readerMode !== "continuous" && MouseEvent(this.rendition); // 绑定事件
+      this.state.readerMode !== "scroll" && EpubMouseEvent(this.rendition); // 绑定事件
     });
   };
-  handleRecord() {
-    OtherUtil.setReaderConfig("isFullScreen", "no");
-    if (isElectron) {
-      const { ipcRenderer } = window.require("electron");
-      let bounds = ipcRenderer.sendSync("reader-bounds", "ping");
-      OtherUtil.setReaderConfig("windowWidth", bounds.width);
-      OtherUtil.setReaderConfig("windowHeight", bounds.height);
-      OtherUtil.setReaderConfig("windowX", bounds.x);
-      OtherUtil.setReaderConfig("windowY", bounds.y);
-    }
-  }
+
   //进入阅读器
   handleEnterReader = (position: string) => {
     //控制上下左右的菜单的显示
@@ -139,7 +130,7 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
     //控制上下左右的菜单的显示
     switch (position) {
       case "right":
-        if (OtherUtil.getReaderConfig("isSettingLocked") === "yes") {
+        if (StorageUtil.getReaderConfig("isSettingLocked") === "yes") {
           break;
         } else {
           this.setState({ isOpenRightPanel: false });
@@ -147,7 +138,7 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
         }
 
       case "left":
-        if (OtherUtil.getReaderConfig("isNavLocked") === "yes") {
+        if (StorageUtil.getReaderConfig("isNavLocked") === "yes") {
           break;
         } else {
           this.setState({ isOpenLeftPanel: false });
@@ -164,10 +155,22 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
     }
   };
   nextPage = () => {
+    if (lock) return;
     this.state.rendition.next();
+    lock = true;
+    setTimeout(function () {
+      lock = false;
+    }, 400);
+    return false;
   };
   prevPage = () => {
+    if (lock) return;
     this.state.rendition.prev();
+    lock = true;
+    setTimeout(function () {
+      lock = false;
+    }, 400);
+    return false;
   };
   render() {
     const renditionProps = {
@@ -182,7 +185,7 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
     };
     return (
       <div className="viewer">
-        {OtherUtil.getReaderConfig("isHidePageButton") !== "yes" && (
+        {StorageUtil.getReaderConfig("isHidePageButton") !== "yes" && (
           <>
             <div
               className="previous-chapter-single-container"
@@ -202,17 +205,19 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
             </div>
           </>
         )}
-        <div
-          className="reader-setting-icon-container"
-          onClick={() => {
-            this.handleEnterReader("left");
-            this.handleEnterReader("right");
-            this.handleEnterReader("bottom");
-            this.handleEnterReader("top");
-          }}
-        >
-          <span className="icon-grid reader-setting-icon"></span>
-        </div>
+        {StorageUtil.getReaderConfig("isHideMenuButton") !== "yes" && (
+          <div
+            className="reader-setting-icon-container"
+            onClick={() => {
+              this.handleEnterReader("left");
+              this.handleEnterReader("right");
+              this.handleEnterReader("bottom");
+              this.handleEnterReader("top");
+            }}
+          >
+            <span className="icon-grid reader-setting-icon"></span>
+          </div>
+        )}
         <div
           className="left-panel"
           onMouseEnter={() => {
@@ -375,7 +380,7 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
           style={
             document.body.clientWidth < 570
               ? { left: 0, right: 0 }
-              : this.state.readerMode === "continuous"
+              : this.state.readerMode === "scroll"
               ? {
                   left: `calc(50vw - ${270 * parseFloat(this.state.scale)}px)`,
                   right: `calc(50vw - ${270 * parseFloat(this.state.scale)}px)`,

@@ -4,335 +4,281 @@ import { ViewerProps, ViewerState } from "./interface";
 import localforage from "localforage";
 import { withRouter } from "react-router-dom";
 import BookUtil from "../../utils/fileUtils/bookUtil";
-import MobiParser from "../../utils/fileUtils/mobiParser";
-import marked from "marked";
 import iconv from "iconv-lite";
 import chardet from "chardet";
 import rtfToHTML from "@iarna/rtf-to-html";
-import {
-  xmlBookTagFilter,
-  xmlBookToObj,
-  txtToHtml,
-} from "../../utils/fileUtils/xmlUtil";
-import HtmlParser from "../../utils/fileUtils/htmlParser";
-import OtherUtil from "../../utils/otherUtil";
+import { xmlBookTagFilter, xmlBookToObj } from "../../utils/fileUtils/xmlUtil";
+import StorageUtil from "../../utils/storageUtil";
 import RecordLocation from "../../utils/readUtils/recordLocation";
 import { mimetype } from "../../constants/mimetype";
-import styleUtil from "../../utils/readUtils/styleUtil";
-import { isElectron } from "react-device-detect";
-import Lottie from "react-lottie";
-import animationSiri from "../../assets/lotties/siri.json";
-import _ from "underscore";
 import BackgroundWidget from "../../components/backgroundWidget";
 import toast from "react-hot-toast";
+import StyleUtil from "../../utils/readUtils/styleUtil";
+import "./index.css";
+import { HtmlMouseEvent } from "../../utils/mouseEvent";
 
 declare var window: any;
-const siriOptions = {
-  loop: true,
-  autoplay: true,
-  animationData: animationSiri,
-  rendererSettings: {
-    preserveAspectRatio: "xMidYMid slice",
-  },
-};
+
+const { MobiRender, Azw3Render, TxtRender, StrRender } = window.Kookit;
+
 class Viewer extends React.Component<ViewerProps, ViewerState> {
   epub: any;
+  lock: boolean;
   constructor(props: ViewerProps) {
     super(props);
     this.state = {
       key: "",
-      isLoading: true,
-      scale: OtherUtil.getReaderConfig("scale") || 1,
+      isFirst: true,
+      scale: StorageUtil.getReaderConfig("scale") || 1,
+      chapterTitle:
+        RecordLocation.getScrollHeight(this.props.currentBook.key)
+          .chapterTitle || "",
+      readerMode: StorageUtil.getReaderConfig("readerMode") || "double",
+      margin: parseInt(StorageUtil.getReaderConfig("margin")) || 30,
     };
+    this.lock = false;
   }
 
   componentDidMount() {
-    let url = document.location.href.split("/");
-    let key = url[url.length - 1].split("?")[0];
-    this.setState({ key });
-    localforage.getItem("books").then((result: any) => {
-      let book = result[_.findIndex(result, { key })];
-      BookUtil.fetchBook(key, true, book.path).then((result) => {
-        if (!result) {
-          toast.error(this.props.t("Book not exsits"));
-          return;
-        }
-        this.props.handleReadingBook(book);
-        if (book.format === "MOBI" || book.format === "AZW3") {
-          this.handleMobi(result as ArrayBuffer);
-        } else if (book.format === "TXT") {
-          this.handleTxt(result as ArrayBuffer);
-        } else if (book.format === "MD") {
-          this.handleMD(result as ArrayBuffer);
-        } else if (book.format === "FB2") {
-          this.handleFb2(result as ArrayBuffer);
-        } else if (book.format === "RTF") {
-          this.handleRtf(result as ArrayBuffer);
-        } else if (book.format === "DOCX") {
-          this.handleDocx(result as ArrayBuffer);
-        } else if (
-          book.format === "HTML" ||
-          book.format === "XHTML" ||
-          book.format === "HTM" ||
-          book.format === "XML"
-        ) {
-          this.handleHtml(result as ArrayBuffer, book.format);
-        }
-        this.props.handleReadingState(true);
-        RecentBooks.setRecent(key);
-        document.title = book.name + " - Koodo Reader";
-      });
-    });
-    this.props.handleRenderFunc(this.handleRenderHtml);
+    this.handleRenderBook();
 
+    this.props.handleRenderFunc(this.handleRenderBook);
+    var doit;
+    window.addEventListener("resize", () => {
+      if (StorageUtil.getReaderConfig("readerMode") === "single") {
+        return;
+      }
+      clearTimeout(doit);
+      doit = setTimeout(this.handleRenderBook, 100);
+    });
+  }
+  handleRenderBook = () => {
+    let { key, path, format, name } = this.props.currentBook;
+    BookUtil.fetchBook(key, true, path).then((result) => {
+      if (!result) {
+        toast.error(this.props.t("Book not exsits"));
+        return;
+      }
+
+      if (format === "MOBI") {
+        this.handleMobi(result as ArrayBuffer);
+      } else if (format === "AZW3") {
+        this.handleAzw3(result as ArrayBuffer);
+      } else if (format === "TXT") {
+        this.handleTxt(result as ArrayBuffer);
+      } else if (format === "MD") {
+        this.handleMD(result as ArrayBuffer);
+      } else if (format === "FB2") {
+        this.handleFb2(result as ArrayBuffer);
+      } else if (format === "RTF") {
+        this.handleRtf(result as ArrayBuffer);
+      } else if (format === "DOCX") {
+        this.handleDocx(result as ArrayBuffer);
+      } else if (
+        format === "HTML" ||
+        format === "XHTML" ||
+        format === "HTM" ||
+        format === "XML"
+      ) {
+        this.handleHtml(result as ArrayBuffer, format);
+      }
+      this.props.handleReadingState(true);
+
+      RecentBooks.setRecent(this.props.currentBook.key);
+      document.title = name + " - Koodo Reader";
+    });
+  };
+  handleRest = (rendition: any) => {
+    StyleUtil.addDefaultCss();
+    rendition.setStyle(StyleUtil.getCustomCss(true));
+    let bookLocation = RecordLocation.getScrollHeight(
+      this.props.currentBook.key
+    );
+
+    rendition.goToPosition(
+      bookLocation.text,
+      bookLocation.chapterTitle,
+      bookLocation.count
+    );
     window.frames[0].document.addEventListener("click", (event) => {
       this.props.handleLeaveReader("left");
       this.props.handleLeaveReader("right");
       this.props.handleLeaveReader("top");
       this.props.handleLeaveReader("bottom");
     });
-  }
-  handleIframeHeight = () => {
-    let iFrame: any = document.getElementsByTagName("iframe")[0];
-    var body = iFrame.contentWindow.document.body,
-      html = iFrame.contentWindow.document.documentElement;
-    iFrame.height =
-      Math.max(
-        body.scrollHeight,
-        body.offsetHeight,
-        html.clientHeight,
-        html.scrollHeight,
-        html.offsetHeight
-      ) * 2;
-    setTimeout(() => {
-      let iFrame: any = document.getElementsByTagName("iframe")[0];
-      let body = iFrame.contentWindow.document.body;
-      let lastchild = body.lastElementChild;
-      let lastEle = body.lastChild;
-      let itemAs = body.querySelectorAll("a");
-      let itemPs = body.querySelectorAll("p");
-      let lastItemA = itemAs[itemAs.length - 1];
-      let lastItemP = itemPs[itemPs.length - 1];
-      let lastItem;
-      if (_.isElement(lastItemA) && _.isElement(lastItemP)) {
-        if (
-          lastItemA.clientHeight + (lastItemA as any).offsetTop >
-          lastItemP.clientHeight + (lastItemP as any).offsetTop
-        ) {
-          lastItem = lastItemA;
-        } else {
-          lastItem = lastItemP;
-        }
-      }
 
-      let nodeHeight = 0;
-
-      if (!lastchild && !lastItem && !lastEle) return;
-      if (lastEle.nodeType === 3 && !lastchild && !lastItem) return;
-
-      if (lastEle.nodeType === 3) {
-        if (document.createRange) {
-          let range = document.createRange();
-          range.selectNodeContents(lastEle);
-          if (range.getBoundingClientRect) {
-            let rect = range.getBoundingClientRect();
-            if (rect) {
-              nodeHeight = rect.bottom - rect.top;
-            }
-          }
-        }
-      }
-
-      iFrame.height =
-        Math.max(
-          _.isElement(lastchild)
-            ? lastchild.clientHeight + (lastchild as any).offsetTop
-            : 0,
-          _.isElement(lastEle)
-            ? lastEle.clientHeight + (lastEle as any).offsetTop
-            : 0,
-          _.isElement(lastItem)
-            ? lastItem.clientHeight + (lastItem as any).offsetTop
-            : 0
-        ) +
-        400 +
-        (lastEle.nodeType === 3 ? nodeHeight : 0);
-    }, 500);
-  };
-  handleRecord() {
-    if (isElectron) {
-      const { ipcRenderer } = window.require("electron");
-      let bounds = ipcRenderer.sendSync("reader-bounds", "ping");
-      OtherUtil.setReaderConfig("windowWidth", bounds.width);
-      OtherUtil.setReaderConfig("windowHeight", bounds.height);
-      OtherUtil.setReaderConfig("windowX", bounds.x);
-      OtherUtil.setReaderConfig("windowY", bounds.y);
-    }
-
-    RecordLocation.recordScrollHeight(
-      this.state.key,
-      document.body.clientWidth,
-      document.body.clientHeight,
-      document.getElementsByClassName("ebook-viewer")[0].scrollTop,
-      document.getElementsByClassName("ebook-viewer")[0].scrollHeight
+    HtmlMouseEvent(
+      rendition,
+      this.props.currentBook.key,
+      this.state.readerMode
     );
-  }
-  handleRest = (docStr: string) => {
-    let htmlParser = new HtmlParser(
-      new DOMParser().parseFromString(docStr, "text/html")
-    );
-
     this.props.handleHtmlBook({
-      doc: htmlParser.getAnchoredDoc(),
-      chapters: htmlParser.getContentList(),
+      key: this.props.currentBook.key,
+      chapters: rendition.getChapter(),
       subitems: [],
+      rendition: rendition,
     });
-    this.handleRenderHtml();
-  };
-  handleRenderHtml = () => {
-    window.frames[0].document.body.innerHTML = "";
-    window.frames[0].document.body.innerHTML = (this.props.htmlBook
-      .doc as any).documentElement.outerHTML;
-    this.setState({ isLoading: false });
-
-    styleUtil.addHtmlCss();
-    this.handleIframeHeight();
-
-    setTimeout(() => {
-      document
-        .getElementsByClassName("ebook-viewer")[0]
-        .scrollTo(0, RecordLocation.getScrollHeight(this.state.key).scroll);
-      let iframe = document.getElementsByTagName("iframe")[0];
-      if (!iframe) return;
-      let doc = iframe.contentDocument;
-      if (!doc) {
-        return;
-      }
-
-      let imgs = doc!.getElementsByTagName("img");
-      let links = doc!.getElementsByTagName("a");
-      for (let item of links) {
-        item.addEventListener("click", (e) => {
-          e.preventDefault();
-          this.handleJump(item.href);
-        });
-      }
-      for (let item of imgs) {
-        item.setAttribute("style", "max-width: 100%");
-      }
-
-      this.bindEvent(doc);
-    }, 1);
-  };
-  handleJump = (url: string) => {
-    isElectron
-      ? window.require("electron").shell.openExternal(url)
-      : window.open(url);
-  };
-  bindEvent = (doc: any) => {
-    let isFirefox = navigator.userAgent.indexOf("Firefox") > -1;
-    // 鼠标滚轮翻页
-
-    if (isFirefox) {
-      doc.addEventListener(
-        "DOMMouseScroll",
-        () => {
-          this.handleRecord();
-        },
-        false
-      );
-    } else {
-      doc.addEventListener(
-        "mousewheel",
-        () => {
-          this.handleRecord();
-        },
-        false
-      );
-    }
   };
   handleMobi = async (result: ArrayBuffer) => {
-    let mobiFile = new MobiParser(result);
-    let content: any = await mobiFile.render();
-    this.handleRest(content.outerHTML);
-  };
-  handleTxt = (result: ArrayBuffer) => {
-    let text = iconv.decode(
-      Buffer.from(result),
-      chardet.detect(Buffer.from(result)) as string
+    let rendition = new MobiRender(result, this.state.readerMode);
+    await rendition.renderTo(
+      document.getElementsByClassName("html-viewer-page")[0]
     );
-    this.handleRest(txtToHtml(text));
+    this.handleRest(rendition);
+  };
+  handleAzw3 = async (result: ArrayBuffer) => {
+    let rendition = new Azw3Render(result, this.state.readerMode);
+    await rendition.renderTo(
+      document.getElementsByClassName("html-viewer-page")[0]
+    );
+    this.handleRest(rendition);
+  };
+  handleCharset = (result: ArrayBuffer) => {
+    return new Promise<string>(async (resolve, reject) => {
+      let { books } = this.props;
+      let charset = "";
+      books.forEach((item) => {
+        if (item.key === this.props.currentBook.key) {
+          charset = chardet.detect(Buffer.from(result)) || "";
+          item.charset = charset;
+          this.props.handleReadingBook(item);
+        }
+      });
+
+      await localforage.setItem("books", books);
+      // this.props.handleFetchBooks();
+      resolve(charset);
+    });
+  };
+  handleTxt = async (result: ArrayBuffer) => {
+    let charset = "";
+    if (!this.props.currentBook.charset) {
+      charset = await this.handleCharset(result);
+    }
+    let rendition = new TxtRender(
+      result,
+      this.state.readerMode,
+      this.props.currentBook.charset || charset || "utf8"
+    );
+    await rendition.renderTo(
+      document.getElementsByClassName("html-viewer-page")[0]
+    );
+    this.handleRest(rendition);
   };
   handleMD = (result: ArrayBuffer) => {
     var blob = new Blob([result], { type: "text/plain" });
     var reader = new FileReader();
-    reader.onload = (evt) => {
-      this.handleRest(marked(evt.target?.result as any));
+    reader.onload = async (evt) => {
+      let docStr = window.marked(evt.target?.result as any);
+      let rendition = new StrRender(docStr, this.state.readerMode);
+      await rendition.renderTo(
+        document.getElementsByClassName("html-viewer-page")[0]
+      );
+      this.handleRest(rendition);
     };
     reader.readAsText(blob, "UTF-8");
   };
-  handleRtf = (result: ArrayBuffer) => {
+  handleRtf = async (result: ArrayBuffer) => {
+    let charset = "";
+    if (!this.props.currentBook.charset) {
+      charset = await this.handleCharset(result);
+    }
     let text = iconv.decode(
       Buffer.from(result),
-      chardet.detect(Buffer.from(result)) as string
+      this.props.currentBook.charset || charset || "utf8"
     );
-    rtfToHTML.fromString(text, (err: any, html: any) => {
-      this.handleRest(html);
+
+    rtfToHTML.fromString(text, async (err: any, html: any) => {
+      let rendition = new StrRender(html, this.state.readerMode);
+      await rendition.renderTo(
+        document.getElementsByClassName("html-viewer-page")[0]
+      );
+      this.handleRest(rendition);
     });
   };
   handleDocx = (result: ArrayBuffer) => {
-    window.mammoth.convertToHtml({ arrayBuffer: result }).then((res: any) => {
-      this.handleRest(res.value);
-    });
+    window.mammoth
+      .convertToHtml({ arrayBuffer: result })
+      .then(async (res: any) => {
+        let rendition = new StrRender(res.value, this.state.readerMode);
+        await rendition.renderTo(
+          document.getElementsByClassName("html-viewer-page")[0]
+        );
+        this.handleRest(rendition);
+      });
   };
-  handleFb2 = (result: ArrayBuffer) => {
+  handleFb2 = async (result: ArrayBuffer) => {
+    let charset = "";
+    if (!this.props.currentBook.charset) {
+      charset = await this.handleCharset(result);
+    }
     let fb2Str = iconv.decode(
       Buffer.from(result),
-      chardet.detect(Buffer.from(result)) as string
+      this.props.currentBook.charset || charset || "utf8"
     );
     let bookObj = xmlBookToObj(Buffer.from(result));
     bookObj += xmlBookTagFilter(fb2Str);
-    this.handleRest(bookObj);
+    let rendition = new StrRender(bookObj, this.state.readerMode);
+    await rendition.renderTo(
+      document.getElementsByClassName("html-viewer-page")[0]
+    );
+    this.handleRest(rendition);
   };
   handleHtml = (result: ArrayBuffer, format: string) => {
     var blob = new Blob([result], {
       type: mimetype[format.toLocaleLowerCase()],
     });
     var reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       const html = evt.target?.result as any;
-      this.handleRest(html);
+      let rendition = new StrRender(html, this.state.readerMode);
+      await rendition.renderTo(
+        document.getElementsByClassName("html-viewer-page")[0]
+      );
+      this.handleRest(rendition);
     };
     reader.readAsText(blob, "UTF-8");
   };
   render() {
     return (
       <>
-        {this.state.isLoading && (
-          <div className="spinner">
-            <Lottie options={siriOptions} height={100} width={300} />
-          </div>
-        )}
-
         <div
-          className="ebook-viewer"
-          style={{
-            position: "absolute",
-            left: `calc(50vw - ${270 * parseFloat(this.state.scale)}px + 9px)`,
-            right: `calc(50vw - ${270 * parseFloat(this.state.scale)}px + 7px)`,
-            top: "20px",
-            bottom: "20px",
-            overflowY: "scroll",
-            zIndex: 5,
-          }}
-        >
-          <iframe title="html-viewer" width="100%">
-            Loading
-          </iframe>
-        </div>
-        {OtherUtil.getReaderConfig("isHideBackground") === "yes" ? null : (
+          className="html-viewer-page"
+          style={
+            document.body.clientWidth < 570
+              ? { left: 0, right: 0 }
+              : this.state.readerMode === "scroll"
+              ? {
+                  left: `calc(50vw - ${
+                    270 * parseFloat(this.state.scale)
+                  }px + 9px)`,
+                  right: `calc(50vw - ${
+                    270 * parseFloat(this.state.scale)
+                  }px + 7px)`,
+                  overflowY: "scroll",
+                  overflowX: "hidden",
+                }
+              : this.state.readerMode === "single"
+              ? {
+                  left: `calc(50vw - ${
+                    270 * parseFloat(this.state.scale)
+                  }px + 15px)`,
+                  right: `calc(50vw - ${
+                    270 * parseFloat(this.state.scale)
+                  }px + 15px)`,
+                }
+              : this.state.readerMode === "double"
+              ? {
+                  left: this.state.margin + 10 + "px",
+                  right: this.state.margin + 10 + "px",
+                }
+              : {}
+          }
+        ></div>
+        {StorageUtil.getReaderConfig("isHideBackground") === "yes" ? null : this
+            .props.currentBook.key ? (
           <BackgroundWidget />
-        )}
+        ) : null}
       </>
     );
   }

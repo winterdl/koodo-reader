@@ -3,6 +3,7 @@ import {
   handleFetchBookmarks,
   handleFetchChapters,
   handleFetchBooks,
+  handleReadingBook,
 } from "../../store/actions";
 import { connect } from "react-redux";
 import { stateType } from "../../store";
@@ -14,6 +15,7 @@ const mapStateToProps = (state: stateType) => {
     currentEpub: state.book.currentEpub,
     currentBook: state.book.currentBook,
     percentage: state.progressPanel.percentage,
+    htmlBook: state.reader.htmlBook,
   };
 };
 const actionCreator = {
@@ -21,6 +23,7 @@ const actionCreator = {
   handleFetchBookmarks,
   handleFetchChapters,
   handleFetchBooks,
+  handleReadingBook,
 };
 export default connect(
   mapStateToProps,

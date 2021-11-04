@@ -4,7 +4,7 @@ import "./bookCoverItem.css";
 import { BookCoverProps, BookCoverState } from "./interface";
 import AddFavorite from "../../utils/readUtils/addFavorite";
 import ActionDialog from "../dialogs/actionDialog";
-import OtherUtil from "../../utils/otherUtil";
+import StorageUtil from "../../utils/storageUtil";
 import { withRouter } from "react-router-dom";
 import RecordLocation from "../../utils/readUtils/recordLocation";
 import { isElectron } from "react-device-detect";
@@ -37,17 +37,22 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
     }
 
     if (
-      OtherUtil.getReaderConfig("isOpenBook") === "yes" &&
+      StorageUtil.getReaderConfig("isOpenBook") === "yes" &&
       RecentBooks.getAllRecent()[0] === this.props.book.key &&
       !this.props.currentBook.key &&
       !filePath
     ) {
-      BookUtil.RedirectBook(this.props.book);
+      this.props.handleReadingBook(this.props.book);
+      if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
+        this.props.history.push(BookUtil.getBookUrl(this.props.book));
+      } else {
+        BookUtil.RedirectBook(this.props.book);
+      }
     }
-    this.props.handleReadingBook(this.props.book);
   }
 
   handleMoreAction = (event: any) => {
+    event.preventDefault();
     const e = event || window.event;
     let x = e.clientX;
     if (x > document.body.clientWidth - 300 && !this.props.isCollapsed) {
@@ -98,8 +103,12 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
       return;
     }
     RecentBooks.setRecent(this.props.book.key);
-
-    BookUtil.RedirectBook(this.props.book);
+    this.props.handleReadingBook(this.props.book);
+    if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
+      this.props.history.push(BookUtil.getBookUrl(this.props.book));
+    } else {
+      BookUtil.RedirectBook(this.props.book);
+    }
   };
   render() {
     let percentage = RecordLocation.getCfi(this.props.book.key)
@@ -115,6 +124,9 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
           }}
           onMouseLeave={() => {
             this.handleConfig(false);
+          }}
+          onContextMenu={(event) => {
+            this.handleMoreAction(event);
           }}
         >
           {this.props.book.cover &&
@@ -164,7 +176,7 @@ class BookCoverItem extends React.Component<BookCoverProps, BookCoverState> {
               <Trans>Empty</Trans>
             )}
           </div>
-          {this.state.isFavorite ? (
+          {this.state.isFavorite && !this.props.isSelectBook ? (
             <span
               className="icon-love book-loved-icon"
               onClick={() => {

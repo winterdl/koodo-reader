@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.png" />
-    <link rel="dns-prefetch" href="https://koodo-reader.vercel.app/" />
+    <link rel="dns-prefetch" href="https://koodo-reader.vercel.app" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="keywords" content="epub reader free koodo" />
     <meta
@@ -99,7 +99,11 @@
     ></script>
     <script
       type="text/javascript"
-      src="%PUBLIC_URL%/lib/pdf/build/pdf.js"
+      src="%PUBLIC_URL%/lib/kookit/kookit.umd.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="%PUBLIC_URL%/lib/marked/marked.js"
     ></script>
     <script
       type="text/javascript"
@@ -137,10 +141,7 @@
       type="text/javascript"
       src="%PUBLIC_URL%/lib/unrar/unrar.js"
     ></script>
-    <script
-      type="text/javascript"
-      src="%PUBLIC_URL%/lib/djvu/djvu.min.js"
-    ></script>
+    <script type="text/javascript" src="%PUBLIC_URL%/lib/djvu/djvu.js"></script>
     <script
       type="text/javascript"
       src="%PUBLIC_URL%/lib/djvu/djvu_viewer.js"

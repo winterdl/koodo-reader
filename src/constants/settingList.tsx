@@ -14,7 +14,7 @@ export const settingList = [
   },
   {
     isElectron: true,
-    title: "Import books as referrence",
+    title: "Import books as link",
     desc:
       "The imported books will not be copied to library, only linked to the original book path",
     propName: "isImportPath",
@@ -23,12 +23,12 @@ export const settingList = [
     isElectron: true,
     title: "Merge reader into Word",
     desc:
-      "Get rid of window Frame and mimical background, make reader hide into Word or any text editor, and can't be detected",
+      "Get rid of window frame, make reader hide into Word or any text editor, and can't be detected. You need to set up the reader's position, size and style first.",
     propName: "isMergeWord",
   },
   {
     isElectron: false,
-    title: "Auto open latest book",
+    title: "Auto open last-read book",
     desc:
       "The book that you read from last time will be open automatically when launching",
     propName: "isOpenBook",
@@ -45,6 +45,26 @@ export const settingList = [
     title: "Default expand all content",
     desc: "All the folded content will be expanded in the navigation panel",
     propName: "isExpandContent",
+  },
+  {
+    isElectron: true,
+    title: "Disable screen blanking",
+    desc: "When Koodo is running, your computer won't enter sleep mode",
+    propName: "isPreventSleep",
+  },
+  {
+    isElectron: true,
+    title: "Open book without adding it to library",
+    desc:
+      "When opening books in the file manager with Koodo, the opened books won't be added to the library",
+    propName: "isPreventAdd",
+  },
+  {
+    isElectron: false,
+    title: "Open books in the main window",
+    desc:
+      "Book won't be opened in a seperate window but directly opened in the main window",
+    propName: "isOpenInMain",
   },
   {
     isElectron: true,
@@ -118,30 +138,8 @@ export const readerSettingList = [
     title: "Hide navigation button",
     propName: "isHidePageButton",
   },
-];
-export const htmlSettingList = [
   {
-    title: "Text Indent",
-    propName: "isIndent",
-  },
-  {
-    title: "Bold Font",
-    propName: "isBold",
-  },
-  {
-    title: "Italic",
-    propName: "isItalic",
-  },
-  {
-    title: "Text Underline",
-    propName: "isUnderline",
-  },
-  {
-    title: "Text Shadow",
-    propName: "isShadow",
-  },
-  {
-    title: "Dont't use mimical background",
-    propName: "isHideBackground",
+    title: "Hide menu button",
+    propName: "isHideMenuButton",
   },
 ];

@@ -1,7 +1,11 @@
 import BookModel from "../../model/Book";
 
 declare var window: any;
-export const addEpub = (file: any, md5: string) => {
+export const addEpub = (
+  file: any,
+  md5: string,
+  filePath: string = "Unknown Path"
+) => {
   return new Promise<BookModel | boolean>((resolve, reject) => {
     let reader = new FileReader();
     reader.readAsArrayBuffer(file);
@@ -11,6 +15,8 @@ export const addEpub = (file: any, md5: string) => {
         throw new Error();
       }
       let cover: any = "";
+      let charset: any = "";
+
       const epub = window.ePub(e.target.result);
       epub.loaded.metadata
         .then((metadata: any) => {
@@ -57,7 +63,8 @@ export const addEpub = (file: any, md5: string) => {
                     format,
                     publisher,
                     file.size,
-                    file.path
+                    file.path || filePath,
+                    charset
                   );
                   resolve(book);
                 };
@@ -93,7 +100,8 @@ export const addEpub = (file: any, md5: string) => {
                   format,
                   publisher,
                   file.size,
-                  file.path
+                  file.path || filePath,
+                  charset
                 );
 
                 resolve(book);

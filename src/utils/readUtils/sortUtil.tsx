@@ -42,7 +42,7 @@ const getPercentageArr = () => {
   let locationObj = RecordLocation.getAllCfi();
   var sortable: any = [];
   for (let obj in locationObj) {
-    sortable.push([obj, locationObj[obj].percentage]);
+    sortable.push([obj, locationObj[obj].percentage || 0]);
   }
   sortable.sort(function (a, b) {
     return a[1] - b[1];
@@ -205,8 +205,8 @@ class SortUtil {
   static setNoteSortCode(sort: number, order: number) {
     let json =
       localStorage.getItem("noteSortCode") ||
-      JSON.stringify({ sort: 2, order: 2 });
-    let obj = json ? JSON.parse(json) : { sort: 2, order: 2 };
+      JSON.stringify({ sort: 2, order: 1 });
+    let obj = json ? JSON.parse(json) : { sort: 2, order: 1 };
     obj.sort = sort;
     obj.order = order;
     localStorage.setItem("noteSortCode", JSON.stringify(obj));
@@ -215,8 +215,8 @@ class SortUtil {
   static getNoteSortCode() {
     let json =
       localStorage.getItem("noteSortCode") ||
-      JSON.stringify({ sort: 2, order: 2 });
-    let obj = JSON.parse(json) || { sort: 2, order: 2 };
+      JSON.stringify({ sort: 2, order: 1 });
+    let obj = JSON.parse(json) || { sort: 2, order: 1 };
     return obj || null;
   }
 }

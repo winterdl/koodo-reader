@@ -5,9 +5,11 @@ import OperationPanel from "../../containers/panels/operationPanel";
 import { Toaster } from "react-hot-toast";
 import ProgressPanel from "../../containers/panels/htmlProgressPanel";
 import { ReaderProps, ReaderState } from "./interface";
-import OtherUtil from "../../utils/otherUtil";
+import StorageUtil from "../../utils/storageUtil";
 import ReadingTime from "../../utils/readUtils/readingTime";
 import Viewer from "../../containers/htmlViewer";
+import _ from "underscore";
+import localforage from "localforage";
 
 class Reader extends React.Component<ReaderProps, ReaderState> {
   messageTimer!: NodeJS.Timeout;
@@ -18,22 +20,39 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
     super(props);
     this.state = {
       isOpenRightPanel:
-        OtherUtil.getReaderConfig("isSettingLocked") === "yes" ? true : false,
+        StorageUtil.getReaderConfig("isSettingLocked") === "yes" ? true : false,
       isOpenTopPanel: false,
       isOpenBottomPanel: false,
       hoverPanel: "",
       isOpenLeftPanel:
-        OtherUtil.getReaderConfig("isNavLocked") === "yes" ? true : false,
+        StorageUtil.getReaderConfig("isNavLocked") === "yes" ? true : false,
       rendition: null,
-      scale: OtherUtil.getReaderConfig("scale") || 1,
-      margin: parseInt(OtherUtil.getReaderConfig("margin")) || 30,
+      scale: StorageUtil.getReaderConfig("scale") || 1,
+      margin: parseInt(StorageUtil.getReaderConfig("margin")) || 30,
       time: ReadingTime.getTime(this.props.currentBook.key),
-      isTouch: OtherUtil.getReaderConfig("isTouch") === "yes",
-      isPreventTrigger: OtherUtil.getReaderConfig("isPreventTrigger") === "yes",
-      readerMode: OtherUtil.getReaderConfig("readerMode") || "double",
+      isTouch: StorageUtil.getReaderConfig("isTouch") === "yes",
+      isPreventTrigger:
+        StorageUtil.getReaderConfig("isPreventTrigger") === "yes",
+      readerMode: StorageUtil.getReaderConfig("readerMode") || "double",
     };
   }
-
+  componentWillMount() {
+    let url = document.location.href.split("/");
+    let key = url[url.length - 1].split("?")[0];
+    this.props.handleFetchBooks();
+    localforage.getItem("books").then((result: any) => {
+      let book;
+      //兼容在主窗口打开
+      if (this.props.currentBook.key) {
+        book = this.props.currentBook;
+      } else {
+        book =
+          result[_.findIndex(result, { key })] ||
+          JSON.parse(localStorage.getItem("tempBook") || "{}");
+      }
+      this.props.handleReadingBook(book);
+    });
+  }
   //进入阅读器
   handleEnterReader = (position: string) => {
     //控制上下左右的菜单的显示
@@ -67,7 +86,7 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
     //控制上下左右的菜单的显示
     switch (position) {
       case "right":
-        if (OtherUtil.getReaderConfig("isSettingLocked") === "yes") {
+        if (StorageUtil.getReaderConfig("isSettingLocked") === "yes") {
           break;
         } else {
           this.setState({ isOpenRightPanel: false });
@@ -75,7 +94,7 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
         }
 
       case "left":
-        if (OtherUtil.getReaderConfig("isNavLocked") === "yes") {
+        if (StorageUtil.getReaderConfig("isNavLocked") === "yes") {
           break;
         } else {
           this.setState({ isOpenLeftPanel: false });
@@ -105,17 +124,39 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
     };
     return (
       <div className="viewer">
-        <div
-          className="reader-setting-icon-container"
-          onClick={() => {
-            this.handleEnterReader("left");
-            this.handleEnterReader("right");
-            this.handleEnterReader("bottom");
-            this.handleEnterReader("top");
-          }}
-        >
-          <span className="icon-grid reader-setting-icon"></span>
-        </div>
+        {StorageUtil.getReaderConfig("isHidePageButton") !== "yes" && (
+          <>
+            <div
+              className="previous-chapter-single-container"
+              onClick={() => {
+                this.props.htmlBook.rendition.prev();
+              }}
+            >
+              <span className="icon-dropdown previous-chapter-single"></span>
+            </div>
+            <div
+              className="next-chapter-single-container"
+              onClick={() => {
+                this.props.htmlBook.rendition.next();
+              }}
+            >
+              <span className="icon-dropdown next-chapter-single"></span>
+            </div>
+          </>
+        )}
+        {StorageUtil.getReaderConfig("isHideMenuButton") !== "yes" && (
+          <div
+            className="reader-setting-icon-container"
+            onClick={() => {
+              this.handleEnterReader("left");
+              this.handleEnterReader("right");
+              this.handleEnterReader("bottom");
+              this.handleEnterReader("top");
+            }}
+          >
+            <span className="icon-grid reader-setting-icon"></span>
+          </div>
+        )}
         <Toaster />
 
         <div
@@ -210,7 +251,7 @@ class Reader extends React.Component<ReaderProps, ReaderState> {
         >
           <span className="icon-grid panel-icon"></span>
         </div>
-        <Viewer {...renditionProps} />
+        {this.props.currentBook.key && <Viewer {...renditionProps} />}
         <div
           className="setting-panel-container"
           onMouseLeave={(event) => {

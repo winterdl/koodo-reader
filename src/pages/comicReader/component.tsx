@@ -7,11 +7,11 @@ import _ from "underscore";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import "./viewer.css";
 import untar from "js-untar";
-import OtherUtil from "../../utils/otherUtil";
+import StorageUtil from "../../utils/storageUtil";
 import { mimetype } from "../../constants/mimetype";
 import RecordLocation from "../../utils/readUtils/recordLocation";
-import { isElectron } from "react-device-detect";
 import { toast } from "react-hot-toast";
+import BackToMain from "../../components/backToMain";
 
 declare var window: any;
 
@@ -20,12 +20,15 @@ let Unrar = window.Unrar;
 
 class Viewer extends React.Component<ViewerProps, ViewerState> {
   epub: any;
+  lock: boolean;
+
   constructor(props: ViewerProps) {
     super(props);
     this.state = {
       key: "",
-      comicScale: OtherUtil.getReaderConfig("comicScale") || "100%",
+      comicScale: StorageUtil.getReaderConfig("comicScale") || "100%",
     };
+    this.lock = false;
   }
 
   componentDidMount() {
@@ -37,25 +40,54 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       .getElementsByClassName("lang-setting-dropdown")[0]
       ?.children[
         ["25%", "50%", "75%", "100%"].indexOf(
-          OtherUtil.getReaderConfig("comicScale") || "100%"
+          StorageUtil.getReaderConfig("comicScale") || "100%"
         )
       ].setAttribute("selected", "selected");
     window.frames[0].document.addEventListener("wheel", (event) => {
-      RecordLocation.recordScrollHeight(
-        key,
-        document.body.clientWidth,
-        document.body.clientHeight,
-        window.frames[0].document.scrollingElement!.scrollTop,
-        window.frames[0].document.scrollingElement!.scrollHeight
-      );
+      this.handleRecord();
     });
-    window.onbeforeunload = () => {
-      this.handleExit(key);
-    };
+  }
+  isScrolledIntoView = (el: HTMLElement) => {
+    var rect = el.getBoundingClientRect();
+    var elemBottom = rect.bottom;
+    var screen = document.getElementById("root");
+    var isVisible =
+      elemBottom > 0 && elemBottom < (screen as HTMLElement).offsetHeight;
+
+    return isVisible;
+  };
+  handleRecord() {
+    if (this.lock) return;
+
+    RecordLocation.recordScrollHeight(
+      this.props.currentBook.key,
+      (Array.from(
+        window.frames[0].document.getElementsByTagName("img")
+      ).filter((s) => this.isScrolledIntoView(s as any))[0] as HTMLElement)
+        ? (Array.from(
+            window.frames[0].document.getElementsByTagName("img")
+          ).filter((s) => this.isScrolledIntoView(s as any))[0] as HTMLElement)
+            .id
+        : "",
+      "",
+      ""
+    );
+    this.lock = true;
+    setTimeout(() => {
+      this.lock = false;
+    }, 1000);
   }
   handleRender = (key: string) => {
     localforage.getItem("books").then((result: any) => {
-      let book = result[_.findIndex(result, { key })];
+      let book;
+      //兼容在主窗口打开
+      if (this.props.currentBook.key) {
+        book = this.props.currentBook;
+      } else {
+        book =
+          result[_.findIndex(result, { key })] ||
+          JSON.parse(localStorage.getItem("tempBook") || "{}");
+      }
       BookUtil.fetchBook(key, true, book.path).then((result) => {
         if (!result) {
           toast.error(this.props.t("Book not exsits"));
@@ -75,19 +107,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       });
     });
   };
-  // 点击退出按钮的处理程序
-  handleExit(key: string) {
-    this.props.handleReadingState(false);
 
-    if (isElectron) {
-      const { ipcRenderer } = window.require("electron");
-      let bounds = ipcRenderer.sendSync("reader-bounds", "ping");
-      OtherUtil.setReaderConfig("windowWidth", bounds.width);
-      OtherUtil.setReaderConfig("windowHeight", bounds.height);
-      OtherUtil.setReaderConfig("windowX", bounds.x);
-      OtherUtil.setReaderConfig("windowY", bounds.y);
-    }
-  }
   base64ArrayBuffer = (arrayBuffer) => {
     var base64 = "";
     var encodings =
@@ -123,16 +143,19 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
 
     return base64;
   };
-  addImage = (content: ArrayBuffer, extension: string) => {
+  addImage = (content: ArrayBuffer, extension: string, index: number) => {
     let url = this.base64ArrayBuffer(content);
 
     let imageDom = document.createElement("img");
     imageDom.src =
       "data:" + mimetype[extension.toLowerCase()] + ";base64," + url;
+    imageDom.id = index + "";
     imageDom.setAttribute(
       "style",
-      `width:${OtherUtil.getReaderConfig("comicScale") || "100%"};margin-left:${
-        OtherUtil.getReaderConfig("comicScale") === "75%" ? "12.5%" : "0%"
+      `width:${
+        StorageUtil.getReaderConfig("comicScale") || "100%"
+      };margin-left:${
+        StorageUtil.getReaderConfig("comicScale") === "75%" ? "12.5%" : "0%"
       }`
     );
     window.frames[0].document.body.appendChild(imageDom);
@@ -141,18 +164,38 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
     window.frames[0].document.body.removeChild(loading);
   };
   handleJump = () => {
-    window.frames[0].document.scrollingElement!.scrollTo(
+    window.frames[0].document.scrollingElement?.scrollTo(
       0,
-      RecordLocation.getScrollHeight(this.state.key).scroll
+      RecordLocation.getScrollHeight(this.props.currentBook.key).text &&
+        (Array.from(
+          window.frames[0].document.getElementsByTagName("img")
+        ).filter(
+          (s) =>
+            (s as HTMLElement).id ===
+            RecordLocation.getScrollHeight(this.props.currentBook.key).text
+        )[0] as HTMLElement)
+        ? (Array.from(
+            window.frames[0].document.getElementsByTagName("img")
+          ).filter(
+            (s) =>
+              (s as HTMLElement).id ===
+              RecordLocation.getScrollHeight(this.props.currentBook.key).text
+          )[0] as HTMLElement).offsetTop
+        : 0
     );
   };
   handleCbz = (result: ArrayBuffer) => {
     let zip = new JSZip();
     zip.loadAsync(result).then(async (contents) => {
-      for (let filename of Object.keys(contents.files).sort()) {
-        const content = await zip.file(filename).async("arraybuffer");
-        const extension = filename.split(".").reverse()[0];
-        this.addImage(content, extension);
+      for (let i = 0; i < Object.keys(contents.files).sort().length; i++) {
+        const content = await zip
+          .file(Object.keys(contents.files).sort()[i])
+          .async("arraybuffer");
+        const extension = Object.keys(contents.files)
+          .sort()
+          [i].split(".")
+          .reverse()[0];
+        this.addImage(content, extension, i);
       }
       this.handleJump();
     });
@@ -160,15 +203,15 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
   handleCbr = (result: ArrayBuffer) => {
     let unrar = new Unrar(result);
     var entries = unrar.getEntries();
-    for (let item of entries) {
-      var fileData = unrar.decompress(item.name);
+    for (let i = 0; i < entries.length; i++) {
+      var fileData = unrar.decompress(entries[i].name);
       if (!fileData) {
         console.log("decompress failed...");
       }
-      const extension = item.name.split(".").reverse()[0];
-      this.addImage(fileData, extension);
+      const extension = entries[i].name.split(".").reverse()[0];
+      this.addImage(fileData, extension, i);
     }
-    document.scrollingElement!.scrollTo(
+    document.scrollingElement?.scrollTo(
       0,
       RecordLocation.getScrollHeight(this.state.key).scroll
     );
@@ -176,11 +219,11 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
   handleCbt = (result: ArrayBuffer) => {
     untar(result).then(
       (extractedFiles) => {
-        for (let item of extractedFiles) {
-          const extension = item.name.split(".").reverse()[0];
-          this.addImage(item.buffer, extension);
+        for (let i = 0; i < extractedFiles.length; i++) {
+          const extension = extractedFiles[i].name.split(".").reverse()[0];
+          this.addImage(extractedFiles[i].buffer, extension, i);
         }
-        document.scrollingElement!.scrollTo(
+        document.scrollingElement?.scrollTo(
           0,
           RecordLocation.getScrollHeight(this.state.key).scroll
         );
@@ -205,13 +248,14 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         >
           <p>Loading</p>
         </iframe>
+        <BackToMain />
         <div className="comic-scale">
           <select
             name=""
             className="lang-setting-dropdown"
             id="text-speech-voice"
             onChange={(event) => {
-              OtherUtil.setReaderConfig("comicScale", event.target.value);
+              StorageUtil.setReaderConfig("comicScale", event.target.value);
               window.frames[0].document.body.innerHTML = "";
               this.handleRender(this.state.key);
             }}

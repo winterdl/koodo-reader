@@ -1,8 +1,11 @@
+import BookModel from "../../../model/Book";
+import HtmlBook from "../../../model/HtmlBook";
 export interface SettingSwitchProps {
   currentEpub: any;
+  currentBook: BookModel;
   locations: any;
   isReading: boolean;
-  htmlBook;
+  htmlBook: HtmlBook;
   renderFunc: () => void;
   t: (title: string) => string;
 }
@@ -17,4 +20,5 @@ export interface SettingSwitchState {
   isInvert: boolean;
   isHideHeader: boolean;
   isHidePageButton: boolean;
+  isHideMenuButton: boolean;
 }
