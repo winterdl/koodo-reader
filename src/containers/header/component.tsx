@@ -4,8 +4,8 @@ import SearchBox from "../../components/searchBox";
 import ImportLocal from "../../components/importLocal";
 import { Trans } from "react-i18next";
 import { HeaderProps, HeaderState } from "./interface";
-import StorageUtil from "../../utils/storageUtil";
-import UpdateInfo from "../../components/dialogs/updateInfo";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
+import UpdateInfo from "../../components/dialogs/updateDialog";
 import { restore } from "../../utils/syncUtils/restoreUtil";
 import { backup } from "../../utils/syncUtils/backupUtil";
 import { Tooltip } from "react-tippy";
@@ -79,6 +79,11 @@ class Header extends React.Component<HeaderProps, HeaderState> {
 
     window.addEventListener("resize", () => {
       this.setState({ width: document.body.clientWidth });
+    });
+    window.addEventListener("focus", () => {
+      this.props.handleFetchBooks();
+      this.props.handleFetchNotes();
+      this.props.handleFetchBookmarks();
     });
   }
 
@@ -207,7 +212,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
             style={{ left: "490px", top: "18px" }}
           >
             <Tooltip
-              title={this.props.t("Sort")}
+              title={this.props.t("Sort by")}
               position="top"
               trigger="mouseenter"
               distance={20}
@@ -282,7 +287,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
           <div className="animation-mask"></div>
           {this.props.isCollapsed && this.state.width < 950 ? (
             <Tooltip
-              title={this.props.t("Backup and Restore")}
+              title={this.props.t("Backup")}
               position="top"
               trigger="mouseenter"
             >
@@ -292,7 +297,7 @@ class Header extends React.Component<HeaderProps, HeaderState> {
               ></span>
             </Tooltip>
           ) : (
-            <Trans>Backup and Restore</Trans>
+            <Trans>Backup</Trans>
           )}
         </div>
         <ImportLocal

@@ -4,7 +4,7 @@ import "./bookCardItem.css";
 import { BookCardProps, BookCardState } from "./interface";
 import AddFavorite from "../../utils/readUtils/addFavorite";
 import ActionDialog from "../dialogs/actionDialog";
-import StorageUtil from "../../utils/storageUtil";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
 import { withRouter } from "react-router-dom";
 import RecordLocation from "../../utils/readUtils/recordLocation";
 import { isElectron } from "react-device-detect";
@@ -15,7 +15,6 @@ import toast from "react-hot-toast";
 declare var window: any;
 
 class BookCardItem extends React.Component<BookCardProps, BookCardState> {
-  epub: any;
   constructor(props: BookCardProps) {
     super(props);
     this.state = {
@@ -114,10 +113,11 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
     }
   };
   render() {
-    let percentage = RecordLocation.getCfi(this.props.book.key)
-      ? RecordLocation.getCfi(this.props.book.key).percentage
+    let percentage = RecordLocation.getHtmlLocation(this.props.book.key)
+      ? RecordLocation.getHtmlLocation(this.props.book.key).percentage
       : 0;
     const actionProps = { left: this.state.left, top: this.state.top };
+
     return (
       <>
         <div
@@ -127,25 +127,16 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
           }}
           onMouseLeave={() => {
             this.handleConfig(false);
+            this.props.handleActionDialog(false);
           }}
           onContextMenu={(event) => {
             this.handleMoreAction(event);
           }}
         >
-          {this.props.book.cover &&
-          this.props.book.cover !== "noCover" &&
-          this.props.book.publisher !== "mobi" &&
-          this.props.book.publisher !== "azw3" &&
-          this.props.book.publisher !== "txt" ? (
-            <img
-              className="book-item-cover"
-              src={this.props.book.cover}
-              alt=""
-              onClick={() => {
-                this.handleJump();
-              }}
-            />
-          ) : (
+          {!this.props.book.cover ||
+          this.props.book.cover === "noCover" ||
+          (this.props.book.format === "PDF" &&
+            StorageUtil.getReaderConfig("isPDFCover") !== "yes") ? (
             <div
               className="book-item-cover"
               onClick={() => {
@@ -160,6 +151,15 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
                 }}
               />
             </div>
+          ) : (
+            <img
+              className="book-item-cover"
+              src={this.props.book.cover}
+              alt=""
+              onClick={() => {
+                this.handleJump();
+              }}
+            />
           )}
 
           <p className="book-item-title">{this.props.book.name}</p>
@@ -172,8 +172,11 @@ class BookCardItem extends React.Component<BookCardProps, BookCardState> {
               }}
             ></span>
           ) : null}
-          {this.props.isSelectBook && this.props.isSelected ? (
-            <span className="icon-message book-selected-icon"></span>
+          {this.props.isSelectBook ? (
+            <span
+              className="icon-message book-selected-icon"
+              style={this.props.isSelected ? {} : { color: "#eee" }}
+            ></span>
           ) : null}
 
           {this.state.isOpenConfig && !this.props.isSelectBook ? (

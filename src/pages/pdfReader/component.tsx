@@ -7,9 +7,10 @@ import _ from "underscore";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import BackToMain from "../../components/backToMain";
 import PopupMenu from "../../components/popups/popupMenu";
-
+import { Toaster } from "react-hot-toast";
+import { handleLinkJump } from "../../utils/readUtils/linkUtil";
+import { pdfMouseEvent } from "../../utils/serviceUtils/mouseEvent";
 class Viewer extends React.Component<ViewerProps, ViewerState> {
-  epub: any;
   constructor(props: ViewerProps) {
     super(props);
     this.state = {
@@ -18,9 +19,16 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       cfiRange: null,
       contents: null,
       rect: null,
+      pageWidth: 0,
+      pageHeight: 0,
+      loading: true,
     };
   }
-
+  UNSAFE_componentWillMount() {
+    this.props.handleFetchBookmarks();
+    this.props.handleFetchNotes();
+    this.props.handleFetchBooks();
+  }
   componentDidMount() {
     let url = document.location.href.split("/");
     let key = url[url.length - 1].split("?")[0];
@@ -40,82 +48,56 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       this.props.handleReadingBook(book);
       this.setState({ title: book.name + " - Koodo Reader" });
       this.setState({ href: BookUtil.getPDFUrl(book) });
-      setTimeout(() => {}, 1000);
     });
     document
       .querySelector(".ebook-viewer")
       ?.setAttribute("style", "height:100%");
-    let iframe = document.getElementsByTagName("iframe")[0];
+    let pageArea = document.getElementById("page-area");
+    if (!pageArea) return;
+    let iframe = pageArea.getElementsByTagName("iframe")[0];
+    if (!iframe) return;
     iframe.onload = () => {
-      let iWin: any =
+      let doc: any =
         iframe.contentWindow || iframe.contentDocument?.defaultView;
-      iWin.document.addEventListener("mouseup", () => {
-        iWin.getSelection() && this.showHighlight(this.getHightlightCoords());
+      this.setState({ loading: false });
+      pdfMouseEvent();
+      doc.document.addEventListener("click", (event: any) => {
+        event.preventDefault();
+        handleLinkJump(event);
+      });
+
+      doc.document.addEventListener("mouseup", () => {
+        if (!doc!.getSelection()) return;
+        var rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
+        this.setState({
+          rect,
+          pageWidth: doc.document.body.scrollWidth,
+          pageHeight: doc.document.body.scrollHeight,
+        });
+        // iWin.getSelection() && showHighlight(getHightlightCoords());
       });
     };
   }
-  getHightlightCoords() {
-    let iframe = document.getElementsByTagName("iframe")[0];
-    let iWin: any = iframe.contentWindow || iframe.contentDocument?.defaultView;
-    var pageIndex = iWin!.PDFViewerApplication.pdfViewer.currentPageNumber - 1;
-    var page = iWin!.PDFViewerApplication.pdfViewer.getPageView(pageIndex);
-    var pageRect = page.canvas.getClientRects()[0];
-    var selectionRects = iWin.getSelection()!.getRangeAt(0).getClientRects();
-    console.log(selectionRects);
-    var viewport = page.viewport;
-    var selected = Array.from(selectionRects).map(function (r: any) {
-      return viewport
-        .convertToPdfPoint(r.left - pageRect.x, r.top - pageRect.y)
-        .concat(
-          viewport.convertToPdfPoint(
-            r.right - pageRect.x,
-            r.bottom - pageRect.y
-          )
-        );
-    });
-    return { page: pageIndex, coords: selected };
-  }
 
-  showHighlight(selected) {
-    let iframe = document.getElementsByTagName("iframe")[0];
-    let iWin: any = iframe.contentWindow || iframe.contentDocument?.defaultView;
-    var pageIndex = selected.page;
-    var page = iWin.PDFViewerApplication.pdfViewer.getPageView(pageIndex);
-    var pageElement = page.textLayer.textLayerDiv;
-    console.log(page);
-    var viewport = page.viewport;
-    selected.coords.forEach(function (rect) {
-      var bounds = viewport.convertToViewportRectangle(rect);
-      var el = iWin.document.createElement("div");
-      el.setAttribute(
-        "style",
-        "position: absolute; background-color: red;" +
-          "left:" +
-          Math.min(bounds[0], bounds[2]) +
-          "px; top:" +
-          Math.min(bounds[1], bounds[3]) +
-          "px;" +
-          "width:" +
-          Math.abs(bounds[0] - bounds[2]) +
-          "px; height:" +
-          Math.abs(bounds[1] - bounds[3]) +
-          "px; z-index:" +
-          "-1"
-      );
-      pageElement.appendChild(el);
-    });
-    console.log(pageElement);
-  }
   render() {
-    const popupMenuProps = {
-      rendition: {},
-      cfiRange: this.state.cfiRange,
-      contents: this.state.contents,
-      rect: this.state.rect,
-    };
     return (
-      <div className="ebook-viewer">
-        {/* <PopupMenu {...popupMenuProps} /> */}
+      <div className="ebook-viewer" id="page-area">
+        {!this.state.loading && (
+          <PopupMenu
+            {...{
+              rendition: {
+                on: (status: string, callback: any) => {
+                  callback();
+                },
+              },
+              rect: this.state.rect,
+              pageWidth: this.state.pageWidth,
+              pageHeight: this.state.pageHeight,
+              chapterIndex: 0,
+              chapter: "0",
+            }}
+          />
+        )}
         <iframe
           src={this.state.href}
           title={this.state.title}
@@ -124,7 +106,7 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
         >
           Loading
         </iframe>
-        <BackToMain />
+        <BackToMain /> <Toaster />
       </div>
     );
   }

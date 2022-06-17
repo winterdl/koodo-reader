@@ -2,7 +2,7 @@ import React from "react";
 import { Trans } from "react-i18next";
 import { SliderListProps, SliderListState } from "./interface";
 import "./sliderList.css";
-import StorageUtil from "../../../utils/storageUtil";
+import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import { isElectron } from "react-device-detect";
 import toast from "react-hot-toast";
 class SliderList extends React.Component<SliderListProps, SliderListState> {
@@ -32,7 +32,7 @@ class SliderList extends React.Component<SliderListProps, SliderListState> {
       }
       return;
     }
-    this.props.renderFunc();
+    this.props.renderBookFunc();
   };
   onValueChange = (event: any) => {
     if (this.props.mode === "fontSize") {
@@ -87,7 +87,8 @@ class SliderList extends React.Component<SliderListProps, SliderListState> {
             defaultValue={this.state.value}
             type="number"
             step={
-              this.props.title === "Scale" || this.props.title === "Brightness"
+              this.props.title === "Page Width" ||
+              this.props.title === "Brightness"
                 ? "0.1"
                 : "1"
             }

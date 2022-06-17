@@ -1,15 +1,17 @@
-import StorageUtil from "../../utils/storageUtil";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
 const initState = {
   bookmarks: [],
   notes: [],
   digests: [],
   chapters: null,
   currentChapter: "",
-  flattenChapters: null,
+  currentChapterIndex: 0,
 
   color: parseInt(StorageUtil.getReaderConfig("highlightIndex"))
     ? parseInt(StorageUtil.getReaderConfig("highlightIndex"))
-    : StorageUtil.getReaderConfig("isDisplayDark") === "yes"
+    : StorageUtil.getReaderConfig("appSkin") === "night" ||
+      (StorageUtil.getReaderConfig("appSkin") === "system" &&
+        StorageUtil.getReaderConfig("isOSNight") === "yes")
     ? 3
     : 0,
   noteKey: "",
@@ -36,6 +38,11 @@ export function reader(
       return {
         ...state,
         currentChapter: action.payload,
+      };
+    case "HANDLE_CURRENT_CHAPTER_INDEX":
+      return {
+        ...state,
+        currentChapterIndex: action.payload,
       };
     case "HANDLE_ORIGINAL_TEXT":
       return {
@@ -72,11 +79,6 @@ export function reader(
       return {
         ...state,
         chapters: action.payload,
-      };
-    case "HANDLE_FLATTEN_CHAPTERS":
-      return {
-        ...state,
-        flattenChapters: action.payload,
       };
     default:
       return state;

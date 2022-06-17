@@ -6,8 +6,8 @@ const initState = {
   isReading: false,
   dragItem: "",
   currentBook: {},
-  currentEpub: {},
-  renderFunc: () => {},
+  renderBookFunc: () => {},
+  renderNoteFunc: () => {},
 };
 export function book(
   state = initState,
@@ -24,10 +24,15 @@ export function book(
         ...state,
         isOpenDeleteDialog: action.payload,
       };
-    case "HANDLE_RENDER_FUNC":
+    case "HANDLE_RENDER_BOOK_FUNC":
       return {
         ...state,
-        renderFunc: action.payload,
+        renderBookFunc: action.payload,
+      };
+    case "HANDLE_RENDER_NOTE_FUNC":
+      return {
+        ...state,
+        renderNoteFunc: action.payload,
       };
     case "HANDLE_ADD_DIALOG":
       return {
@@ -48,12 +53,6 @@ export function book(
       return {
         ...state,
         currentBook: action.payload,
-      };
-
-    case "HANDLE_READING_EPUB":
-      return {
-        ...state,
-        currentEpub: action.payload,
       };
     case "HANDLE_DRAG_ITEM":
       return {

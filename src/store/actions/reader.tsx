@@ -24,11 +24,11 @@ export function handleHtmlBook(htmlBook: HtmlBookModel) {
 export function handleCurrentChapter(currentChapter: string) {
   return { type: "HANDLE_CURRENT_CHAPTER", payload: currentChapter };
 }
+export function handleCurrentChapterIndex(currentChapterIndex: number) {
+  return { type: "HANDLE_CURRENT_CHAPTER_INDEX", payload: currentChapterIndex };
+}
 export function handleChapters(chapters: any) {
   return { type: "HANDLE_CHAPTERS", payload: chapters };
-}
-export function handleFlattenChapters(flattenChapters: any) {
-  return { type: "HANDLE_FLATTEN_CHAPTERS", payload: flattenChapters };
 }
 export function handleNoteKey(key: string) {
   return { type: "HANDLE_NOTE_KEY", payload: key };
@@ -70,18 +70,6 @@ export function flatChapter(chapters: any) {
   return newChapter;
 }
 
-export function handleFetchChapters(epub: any) {
-  return (dispatch: (arg0: { type: string; payload: any }) => void) => {
-    epub.loaded.navigation
-      .then((chapters: any) => {
-        dispatch(handleChapters(chapters.toc));
-        dispatch(handleFlattenChapters(flatChapter(chapters.toc)));
-      })
-      .catch(() => {
-        console.log("Error occurs");
-      });
-  };
-}
 export function handleFetchBookmarks() {
   return (
     dispatch: (arg0: { type: string; payload: BookmarkModel[] }) => void

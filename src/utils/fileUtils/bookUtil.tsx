@@ -1,8 +1,17 @@
-import StorageUtil from "../storageUtil";
+import StorageUtil from "../serviceUtils/storageUtil";
 import { isElectron } from "react-device-detect";
 import localforage from "localforage";
 import BookModel from "../../model/Book";
+import toast from "react-hot-toast";
+import { getPDFCover } from "./pdfUtil";
+import chardet from "chardet";
+import iconv from "iconv-lite";
+import { xmlMetadata } from "./xmlUtil";
+// import { base64ArrayBuffer } from "./coverUtil";
+declare var window: any;
+const { MobiRender, Azw3Render, EpubRender } = window.Kookit;
 
+// let Unrar = window.Unrar;
 class BookUtil {
   static addBook(key: string, buffer: ArrayBuffer) {
     if (isElectron) {
@@ -60,6 +69,37 @@ class BookUtil {
       return localforage.removeItem(key);
     }
   }
+  static isBookExist(key: string, bookPath: string = "") {
+    return new Promise<boolean>((resolve, reject) => {
+      if (isElectron) {
+        var fs = window.require("fs");
+        var path = window.require("path");
+        let _bookPath = path.join(
+          localStorage.getItem("storageLocation")
+            ? localStorage.getItem("storageLocation")
+            : window
+                .require("electron")
+                .ipcRenderer.sendSync("storage-location", "ping"),
+          `book`,
+          key
+        );
+
+        if ((bookPath && fs.existsSync(bookPath)) || fs.existsSync(_bookPath)) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      } else {
+        localforage.getItem(key).then((result) => {
+          if (result) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        });
+      }
+    });
+  }
   static fetchBook(
     key: string,
     isArrayBuffer: boolean = false,
@@ -103,16 +143,20 @@ class BookUtil {
     }
   }
   static async RedirectBook(book: BookModel) {
-    let ref =
-      book.description === "readonly" || book.description === "pdf"
-        ? book.format.toLowerCase()
-        : "epub";
+    if (!(await this.isBookExist(book.key, book.path))) {
+      toast.error("Book not exist");
+      return;
+    }
+    let ref = book.format.toLowerCase();
 
     if (isElectron) {
       const { ipcRenderer } = window.require("electron");
       ipcRenderer.invoke("open-book", {
         url: `${window.location.href.split("#")[0]}#/${ref}/${book.key}`,
-        isMergeWord: StorageUtil.getReaderConfig("isMergeWord"),
+        isMergeWord:
+          book.format === "PDF" || book.format === "DJVU"
+            ? "no"
+            : StorageUtil.getReaderConfig("isMergeWord"),
         isFullscreen: StorageUtil.getReaderConfig("isAutoFullscreen"),
         isPreventSleep: StorageUtil.getReaderConfig("isPreventSleep"),
       });
@@ -125,10 +169,7 @@ class BookUtil {
     }
   }
   static getBookUrl(book: BookModel) {
-    let ref =
-      book.description === "readonly" || book.description === "pdf"
-        ? book.format.toLowerCase()
-        : "epub";
+    let ref = book.format.toLowerCase();
     return `/${ref}/${book.key}`;
   }
   static getPDFUrl(book: BookModel) {
@@ -165,38 +206,108 @@ class BookUtil {
     extension: string,
     md5: string,
     size: number,
-    path: string
+    path: string,
+    file_content: ArrayBuffer
   ) {
-    let cover: any = "noCover";
-    let key: string,
-      name: string,
-      author: string,
-      publisher: string,
-      description: string,
-      charset: string;
+    return new Promise<BookModel | boolean>(async (resolve, reject) => {
+      let cover: any = "";
+      let key: string,
+        name: string,
+        author: string,
+        publisher: string,
+        description: string,
+        charset: string;
+      [name, author, description, publisher, charset] = [
+        bookName,
+        "Unknown Authur",
+        "",
+        "",
+        "",
+      ];
+      switch (extension) {
+        case "pdf":
+          cover = await getPDFCover(file_content);
+          break;
+        case "epub":
+          let epubRendition = new EpubRender(
+            file_content,
+            "scroll",
+            StorageUtil.getReaderConfig("isSliding") === "yes" ? true : false
+          );
+          let metadata = await epubRendition.getMetadata();
 
-    [name, author, description, publisher, charset] = [
-      bookName,
-      "Unknown Authur",
-      "readonly",
-      "",
-      "",
-    ];
-    let format = extension.toUpperCase();
-    key = new Date().getTime() + "";
-    return new BookModel(
-      key,
-      name,
-      author,
-      description,
-      md5,
-      cover,
-      format,
-      publisher,
-      size,
-      path,
-      charset
-    );
+          [name, author, description, publisher, cover] = [
+            metadata.title,
+            metadata.creator,
+            metadata.description,
+            metadata.publisher,
+            metadata.cover,
+          ];
+          if (cover.indexOf("image") === -1) {
+            cover = "";
+          }
+          break;
+        case "mobi":
+          let mobiRendition = new MobiRender(
+            file_content,
+            "scroll",
+            StorageUtil.getReaderConfig("isSliding") === "yes" ? true : false
+          );
+          if (mobiRendition.getMetadata().compression === 17480) {
+            resolve(false);
+          }
+          break;
+        case "azw3":
+          let azw3Rendition = new Azw3Render(
+            file_content,
+            "scroll",
+            StorageUtil.getReaderConfig("isSliding") === "yes" ? true : false
+          );
+          if (azw3Rendition.getMetadata().compression === 17480) {
+            resolve(false);
+          }
+          break;
+        case "fb2":
+          charset = chardet.detect(Buffer.from(file_content)) || "";
+          let fb2Str = iconv.decode(
+            Buffer.from(file_content),
+            charset || "utf8"
+          );
+          let fb2Obj: any = await xmlMetadata(fb2Str);
+          cover = fb2Obj.cover;
+          name = fb2Obj.name;
+          author = fb2Obj.author;
+          break;
+        // case "cbr":
+        //   let unrar = new Unrar(file_content);
+        //   let buffer = unrar.decompress(
+        //     unrar.getEntries().map((item: any) => item.name)[0]
+        //   );
+        //   cover = base64ArrayBuffer(buffer);
+        //   break;
+
+        default:
+          break;
+      }
+
+      let format = extension.toUpperCase();
+      key = new Date().getTime() + "";
+      resolve(
+        new BookModel(
+          key,
+          name,
+          author,
+          description,
+          md5,
+          cover,
+          format,
+          publisher,
+          size,
+          path,
+          charset
+        )
+      );
+    });
   }
 }
 

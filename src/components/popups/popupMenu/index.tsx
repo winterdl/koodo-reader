@@ -4,6 +4,7 @@ import {
   handleMenuMode,
   handleChangeDirection,
   handleNoteKey,
+  handleRenderNoteFunc,
 } from "../../../store/actions";
 import { connect } from "react-redux";
 import { stateType } from "../../../store";
@@ -15,7 +16,6 @@ const mapStateToProps = (state: stateType) => {
     digests: state.reader.digests,
     notes: state.reader.notes,
     noteKey: state.reader.noteKey,
-    currentEpub: state.book.currentEpub,
     currentBook: state.book.currentBook,
     isOpenMenu: state.viewArea.isOpenMenu,
     menuMode: state.viewArea.menuMode,
@@ -29,6 +29,7 @@ const actionCreator = {
   handleMenuMode,
   handleChangeDirection,
   handleNoteKey,
+  handleRenderNoteFunc,
 };
 export default connect(
   mapStateToProps,

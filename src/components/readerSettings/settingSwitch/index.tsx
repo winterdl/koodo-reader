@@ -5,11 +5,10 @@ import { stateType } from "../../../store";
 
 const mapStateToProps = (state: stateType) => {
   return {
-    currentEpub: state.book.currentEpub,
     currentBook: state.book.currentBook,
     locations: state.progressPanel.locations,
     isReading: state.book.isReading,
-    renderFunc: state.book.renderFunc,
+    renderBookFunc: state.book.renderBookFunc,
   };
 };
 const actionCreator = {};

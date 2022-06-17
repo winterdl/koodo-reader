@@ -11,7 +11,6 @@ class SelectBook extends React.Component<BookListProps, BookListState> {
   constructor(props: BookListProps) {
     super(props);
     this.state = {
-      shelfIndex: 0,
       isOpenDelete: false,
       favoriteBooks: Object.keys(AddFavorite.getAllFavorite()).length,
     };
@@ -65,12 +64,7 @@ class SelectBook extends React.Component<BookListProps, BookListState> {
 
                     FileSaver.saveAs(
                       new Blob([result]),
-                      item.name +
-                        `.${
-                          item.format !== "EPUB" && item.cover !== "noCover"
-                            ? "epub"
-                            : item.format.toLocaleLowerCase()
-                        }`
+                      item.name + `.${item.format.toLocaleLowerCase()}`
                     );
                   });
                 this.props.handleSelectBook(!this.props.isSelectBook);

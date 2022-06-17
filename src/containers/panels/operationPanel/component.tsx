@@ -5,10 +5,12 @@ import { Trans } from "react-i18next";
 import localforage from "localforage";
 import RecordLocation from "../../../utils/readUtils/recordLocation";
 import { OperationPanelProps, OperationPanelState } from "./interface";
-import StorageUtil from "../../../utils/storageUtil";
+import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import ReadingTime from "../../../utils/readUtils/readingTime";
 import { withRouter } from "react-router-dom";
 import toast from "react-hot-toast";
+import { HtmlMouseEvent } from "../../../utils/serviceUtils/mouseEvent";
+import storageUtil from "../../../utils/serviceUtils/storageUtil";
 declare var document: any;
 
 class OperationPanel extends React.Component<
@@ -22,12 +24,12 @@ class OperationPanel extends React.Component<
   constructor(props: OperationPanelProps) {
     super(props);
     this.state = {
-      isFullScreen:
-        StorageUtil.getReaderConfig("isFullScreen") === "yes" ? true : false, // 是否进入全屏模式
       isBookmark: false, // 是否添加书签
       time: 0,
-      currentPercentage: RecordLocation.getCfi(this.props.currentBook.key)
-        ? RecordLocation.getCfi(this.props.currentBook.key).percentage
+      currentPercentage: RecordLocation.getHtmlLocation(
+        this.props.currentBook.key
+      )
+        ? RecordLocation.getHtmlLocation(this.props.currentBook.key).percentage
         : 0,
       timeLeft: 0,
     };
@@ -35,62 +37,49 @@ class OperationPanel extends React.Component<
     this.speed = 30000;
   }
 
-  componentWillReceiveProps(nextProps: OperationPanelProps) {
-    if (
-      nextProps.currentEpub.rendition &&
-      nextProps.currentEpub.rendition.location &&
-      this.props.currentEpub.rendition
-    ) {
-      const currentLocation = this.props.currentEpub.rendition.currentLocation();
-      if (!currentLocation.start) {
-        return;
-      }
-      if (
-        this.props.currentEpub.rendition.currentLocation().percentage !==
-        nextProps.currentEpub.rendition.currentLocation().percentage
-      ) {
-        this.speed = Date.now() - this.timeStamp;
-        this.timeStamp = Date.now();
-      }
+  componentDidMount() {
+    this.props.htmlBook.rendition.on("page-changed", async () => {
+      this.speed = Date.now() - this.timeStamp;
+      this.timeStamp = Date.now();
+      let pageProgress = await this.props.htmlBook.rendition.getProgress();
       this.setState({
         timeLeft:
-          ((currentLocation.start.displayed.total -
-            currentLocation.start.displayed.page) *
-            this.speed) /
+          ((pageProgress.totalPage - pageProgress.currentPage) * this.speed) /
           1000,
       });
-      // let nextPercentage = section.start.percentage;
-    }
+      this.props.handleShowBookmark(false);
+
+      HtmlMouseEvent(
+        this.props.htmlBook.rendition,
+        this.props.currentBook.key,
+        storageUtil.getReaderConfig("readerMode")
+      );
+    });
   }
   // 点击切换全屏按钮触发
   handleScreen() {
-    !this.state.isFullScreen
+    StorageUtil.getReaderConfig("isFullscreen") !== "yes"
       ? this.handleFullScreen()
       : this.handleExitFullScreen();
   }
   // 点击退出按钮的处理程序
   handleExit() {
-    StorageUtil.setReaderConfig("isFullScreen", "no");
+    StorageUtil.setReaderConfig("isFullscreen", "no");
     this.props.handleReadingState(false);
     window.speechSynthesis.cancel();
     ReadingTime.setTime(this.props.currentBook.key, this.props.time);
     this.handleExitFullScreen();
+    if (this.props.htmlBook) {
+      this.props.handleHtmlBook(null);
+    }
   }
   //控制进入全屏
   handleFullScreen() {
     let de: any = document.documentElement;
     if (de.requestFullscreen) {
       de.requestFullscreen();
-    } else if (de.mozRequestFullScreen) {
-      de.mozRequestFullScreen();
-    } else if (de.webkitRequestFullscreen) {
-      de.webkitRequestFullscreen();
-    } else if (de.msRequestFullscreen) {
-      de.msRequestFullscreen();
     }
-
-    this.setState({ isFullScreen: true });
-    StorageUtil.setReaderConfig("isFullScreen", "yes");
+    StorageUtil.setReaderConfig("isFullscreen", "yes");
   }
   // 退出全屏模式
   handleExitFullScreen() {
@@ -99,67 +88,42 @@ class OperationPanel extends React.Component<
 
     if (document.exitFullscreen) {
       document.exitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
     }
-
-    this.setState({ isFullScreen: false });
-    StorageUtil.setReaderConfig("isFullScreen", "no");
+    StorageUtil.setReaderConfig("isFullscreen", "no");
   }
-  handleAddBookmark() {
+  handleAddBookmark = async () => {
     let bookKey = this.props.currentBook.key;
-    const currentLocation = this.props.currentEpub.rendition.currentLocation();
-    let chapterHref = currentLocation.start.href;
-    let chapter = "Unknown Chapter";
-    let currentChapter = this.props.flattenChapters.filter(
-      (item: any) =>
-        chapterHref.indexOf(item.href.split("#")[0]) > -1 ||
-        item.href.split("#")[0].indexOf(chapterHref) > -1
-    )[0];
-    if (currentChapter) {
-      chapter = currentChapter.label.trim(" ");
+    let bookLocation = RecordLocation.getHtmlLocation(bookKey);
+    let text = bookLocation.text;
+    let chapter = bookLocation.chapterTitle;
+    let percentage = bookLocation.percentage;
+
+    let cfi = JSON.stringify(bookLocation);
+    if (!text) {
+      text = await this.props.htmlBook.rendition.visibleText();
     }
-    const cfibase = currentLocation.start.cfi
-      .replace(/!.*/, "")
-      .replace("epubcfi(", "");
-    const cfistart = currentLocation.start.cfi
-      .replace(/.*!/, "")
-      .replace(/\)/, "");
-    const cfiend = currentLocation.end.cfi.replace(/.*!/, "").replace(/\)/, "");
-    const cfiRange = `epubcfi(${cfibase}!,${cfistart},${cfiend})`;
-    const cfi = RecordLocation.getCfi(this.props.currentBook.key).cfi;
-    this.props.currentEpub.getRange(cfiRange).then((range: any) => {
-      if (!range) return;
-      let text = range.toString();
-      text = text.replace(/\s\s/g, "");
-      text = text.replace(/\r/g, "");
-      text = text.replace(/\n/g, "");
-      text = text.replace(/\t/g, "");
-      text = text.replace(/\f/g, "");
-      let percentage = RecordLocation.getCfi(this.props.currentBook.key)
-        .percentage
-        ? RecordLocation.getCfi(this.props.currentBook.key).percentage
-        : 0;
-      let bookmark = new Bookmark(
-        bookKey,
-        cfi,
-        text.substr(0, 200),
-        percentage,
-        chapter
-      );
-      let bookmarkArr = this.props.bookmarks ?? [];
-      bookmarkArr.push(bookmark);
-      this.props.handleBookmarks(bookmarkArr);
-      localforage.setItem("bookmarks", bookmarkArr);
-      this.setState({ isBookmark: true });
-      toast.success(this.props.t("Add Successfully"));
-      this.props.handleShowBookmark(true);
-    });
-  }
+    text = text
+      .replace(/\s\s/g, "")
+      .replace(/\r/g, "")
+      .replace(/\n/g, "")
+      .replace(/\t/g, "")
+      .replace(/\f/g, "");
+
+    let bookmark = new Bookmark(
+      bookKey,
+      cfi,
+      text.substr(0, 200),
+      percentage,
+      chapter
+    );
+    let bookmarkArr = this.props.bookmarks;
+    bookmarkArr.push(bookmark);
+    this.props.handleBookmarks(bookmarkArr);
+    localforage.setItem("bookmarks", bookmarkArr);
+    this.setState({ isBookmark: true });
+    toast.success(this.props.t("Add Successfully"));
+    this.props.handleShowBookmark(true);
+  };
 
   render() {
     return (
@@ -168,23 +132,13 @@ class OperationPanel extends React.Component<
           <span>
             <Trans
               i18nKey="Current Reading Time"
-              count={Math.floor(
-                (this.props.time -
-                  ReadingTime.getTime(this.props.currentBook.key)) /
-                  60
-              )}
+              count={Math.floor(Math.abs(Math.floor(this.props.time / 60)))}
             >
               Current Reading Time:
               {{
-                count: Math.abs(
-                  Math.floor(
-                    (this.props.time -
-                      ReadingTime.getTime(this.props.currentBook.key)) /
-                      60
-                  )
-                ),
+                count: Math.abs(Math.floor(this.props.time / 60)),
               }}
-              Minutes
+              min
             </Trans>
           </span>
           &nbsp;&nbsp;&nbsp;
@@ -197,7 +151,7 @@ class OperationPanel extends React.Component<
               {{
                 count: `${Math.ceil(this.state.timeLeft / 60)}`,
               }}
-              Minutes
+              min
             </Trans>
           </span>
         </div>
@@ -205,6 +159,7 @@ class OperationPanel extends React.Component<
           className="exit-reading-button"
           onClick={() => {
             this.handleExit();
+
             if (StorageUtil.getReaderConfig("isOpenInMain") === "yes") {
               this.props.history.push("/manager/home");
               document.title = "Koodo Reader";
@@ -221,11 +176,7 @@ class OperationPanel extends React.Component<
         <div
           className="add-bookmark-button"
           onClick={() => {
-            if (this.props.currentEpub.rendition) {
-              this.handleAddBookmark();
-            } else {
-              toast(this.props.t("Not supported yet"));
-            }
+            this.handleAddBookmark();
           }}
         >
           <span className="icon-add add-bookmark-icon"></span>
@@ -240,7 +191,7 @@ class OperationPanel extends React.Component<
           }}
         >
           <span className="icon-fullscreen enter-fullscreen-icon"></span>
-          {!this.state.isFullScreen ? (
+          {StorageUtil.getReaderConfig("isFullscreen") !== "yes" ? (
             <span className="enter-fullscreen-text">
               <Trans>Enter Fullscreen</Trans>
             </span>

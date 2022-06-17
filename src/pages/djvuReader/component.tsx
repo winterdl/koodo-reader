@@ -7,11 +7,11 @@ import _ from "underscore";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import { toast } from "react-hot-toast";
 import BackToMain from "../../components/backToMain";
+import { djvuMouseEvent } from "../../utils/serviceUtils/mouseEvent";
 
 declare var window: any;
 
 class Viewer extends React.Component<ViewerProps, ViewerState> {
-  epub: any;
   constructor(props: ViewerProps) {
     super(props);
     this.state = {};
@@ -53,13 +53,16 @@ class Viewer extends React.Component<ViewerProps, ViewerState> {
       var ViewerInstance = new window.DjVu.Viewer();
       ViewerInstance.render(document.querySelector(".ebook-viewer"));
       ViewerInstance.loadDocument(result);
+      djvuMouseEvent();
     }, 100);
   };
 
   render() {
     return (
       <div>
-        <div className="ebook-viewer">Loading</div>
+        <div className="ebook-viewer" id="page-area">
+          Loading
+        </div>
         <BackToMain />
       </div>
     );

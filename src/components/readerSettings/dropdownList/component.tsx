@@ -4,7 +4,7 @@ import { dropdownList } from "../../../constants/dropdownList";
 import "./dropdownList.css";
 import { Trans } from "react-i18next";
 import { DropdownListProps, DropdownListState } from "./interface";
-import StorageUtil from "../../../utils/storageUtil";
+import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import { isElectron } from "react-device-detect";
 class DropdownList extends React.Component<
   DropdownListProps,
@@ -25,18 +25,19 @@ class DropdownList extends React.Component<
       currentTextAlignIndex: dropdownList[2].option.findIndex((item: any) => {
         return item === (StorageUtil.getReaderConfig("textAlign") || "left");
       }),
+      chineseConversionIndex: dropdownList[3].option.findIndex((item: any) => {
+        return (
+          item === (StorageUtil.getReaderConfig("convertChinese") || "Default")
+        );
+      }),
     };
   }
   componentDidMount() {
     //使下拉菜单选中预设的值
-    if (
-      isElectron &&
-      navigator.appVersion.indexOf("NT 6.1") === -1 &&
-      navigator.appVersion.indexOf("NT 5.1") === -1 &&
-      navigator.appVersion.indexOf("NT 6.0") === -1
-    ) {
+    if (isElectron) {
       const fontList = window.require("font-list");
       fontList.getFonts({ disableQuoting: true }).then((result) => {
+        if (!result || result.length === 0) return;
         dropdownList[0].option = result;
         dropdownList[0].option.push("Built-in font");
         this.setState(
@@ -57,7 +58,7 @@ class DropdownList extends React.Component<
                 this.state.currentFontFamilyIndex === -1
                   ? 0
                   : this.state.currentFontFamilyIndex
-              ].setAttribute("selected", "selected");
+              ]?.setAttribute("selected", "selected");
           }
         );
       });
@@ -67,13 +68,17 @@ class DropdownList extends React.Component<
       .querySelector(".paragraph-character-setting")!
       .children[1].children[1].children[
         this.state.currentLineHeightIndex
-      ].setAttribute("selected", "selected");
-
+      ]?.setAttribute("selected", "selected");
     document
       .querySelector(".paragraph-character-setting")!
       .children[2].children[1].children[
         this.state.currentTextAlignIndex
-      ].setAttribute("selected", "selected");
+      ]?.setAttribute("selected", "selected");
+    document
+      .querySelector(".paragraph-character-setting")!
+      .children[3].children[1].children[
+        this.state.chineseConversionIndex
+      ]?.setAttribute("selected", "selected");
   }
 
   //切换不同的样式
@@ -100,10 +105,16 @@ class DropdownList extends React.Component<
         });
 
         break;
+      case "convertChinese":
+        this.setState({
+          chineseConversionIndex: arr[1],
+        });
+
+        break;
       default:
         break;
     }
-    this.props.renderFunc();
+    this.props.renderBookFunc();
   }
   render() {
     const renderParagraphCharacter = () => {

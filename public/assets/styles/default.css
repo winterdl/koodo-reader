@@ -7,6 +7,7 @@ body,
 
 .book-content-name,
 .delete-tag-container,
+.setting-subtitle,
 .book-subcontent-name {
   color: rgba(75, 75, 75, 1);
 }
@@ -163,7 +164,7 @@ textarea::-ms-input-placeholder,
 .progress-panel,
 .setting-panel-parent {
   background: rgba(255, 255, 255, 1);
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.2);
 }
 .book-item-cover,
 .book-cover,
@@ -209,7 +210,6 @@ textarea::-ms-input-placeholder,
 .navigation-header,
 .import-from-cloud,
 .only-local-slider,
-.background,
 .single-control-button,
 .progress-slide-circle {
   background: rgba(255, 255, 255, 1);

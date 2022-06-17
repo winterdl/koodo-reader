@@ -1,7 +1,7 @@
 import React from "react";
 import "./loadingPage.css";
 import { LoadingPageProps } from "./interface";
-import StorageUtil from "../../utils/storageUtil";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
 import { Redirect } from "react-router-dom";
 
 class LoadingPage extends React.Component<LoadingPageProps> {
@@ -12,7 +12,7 @@ class LoadingPage extends React.Component<LoadingPageProps> {
     let arr: number[] = [];
     for (
       let i = 0;
-      i < parseInt(StorageUtil.getReaderConfig("totalBooks") || "0");
+      i < parseInt(StorageUtil.getReaderConfig("totalBooks")) || 0;
       i++
     ) {
       arr.push(i);

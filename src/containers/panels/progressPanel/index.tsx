@@ -2,17 +2,18 @@ import { connect } from "react-redux";
 import { stateType } from "../../../store";
 import { withTranslation } from "react-i18next";
 import ProgressPanel from "./component";
-import { handleFetchPercentage } from "../../../store/actions";
 const mapStateToProps = (state: stateType) => {
   return {
-    currentEpub: state.book.currentEpub,
     currentBook: state.book.currentBook,
+    isReading: state.book.isReading,
     percentage: state.progressPanel.percentage,
-    locations: state.progressPanel.locations,
-    flattenChapters: state.reader.flattenChapters,
+    htmlBook: state.reader.htmlBook,
+    currentChapterIndex: state.reader.currentChapterIndex,
+    currentChapter: state.reader.currentChapter,
+    renderBookFunc: state.book.renderBookFunc,
   };
 };
-const actionCreator = { handleFetchPercentage };
+const actionCreator = {};
 export default connect(
   mapStateToProps,
   actionCreator

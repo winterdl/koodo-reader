@@ -59,8 +59,8 @@ export type stateType = {
     isReading: boolean;
     dragItem: string;
     currentBook: BookModel;
-    currentEpub: any;
-    renderFunc: () => void;
+    renderBookFunc: () => void;
+    renderNoteFunc: () => void;
   };
   backupPage: {
     isBackup: boolean;
@@ -76,9 +76,9 @@ export type stateType = {
     digests: NoteModel[];
     color: number;
     chapters: any[];
-    flattenChapters: any;
     noteKey: string;
     currentChapter: string;
+    currentChapterIndex: number;
     originalText: string;
     htmlBook: HtmlBookModel;
   };

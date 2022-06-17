@@ -1,18 +1,22 @@
-import StorageUtil from "../storageUtil";
+import { getIframeDoc } from "../serviceUtils/docUtil";
+import StorageUtil from "../serviceUtils/storageUtil";
 
 class styleUtil {
   // 为 iframe 添加默认的样式
   static addDefaultCss() {
-    let doc = window.frames[0].document;
+    let doc = getIframeDoc();
     if (!doc) return;
+
     let css = this.getDefaultCss();
     let background = document.querySelector(".viewer");
     if (!background) return;
     background.setAttribute(
       "style",
-      `background-color:${StorageUtil.getReaderConfig(
-        "backgroundColor"
-      )};filter: brightness(${
+      `background-color:${
+        StorageUtil.getReaderConfig("isMergeWord") === "yes"
+          ? "rgba(0,0,0,0)"
+          : StorageUtil.getReaderConfig("backgroundColor")
+      };filter: brightness(${
         StorageUtil.getReaderConfig("brightness") || 1
       }) invert(${StorageUtil.getReaderConfig("isInvert") === "yes" ? 1 : 0})`
     );
@@ -39,13 +43,15 @@ class styleUtil {
       }px !important;line-height: ${
         StorageUtil.getReaderConfig("lineHeight") || "1.25"
       } !important;font-family: ${
-        StorageUtil.getReaderConfig("fontFamily") || "Helvetica"
-      } !important;color: ${
+        StorageUtil.getReaderConfig("fontFamily") || ""
+      } !important;background-color: transparent;color: ${
         StorageUtil.getReaderConfig("textColor")
           ? StorageUtil.getReaderConfig("textColor")
           : StorageUtil.getReaderConfig("backgroundColor") ===
               "rgba(44,47,49,1)" ||
-            StorageUtil.getReaderConfig("isDisplayDark") === "yes"
+            StorageUtil.getReaderConfig("appSkin") === "night" ||
+            (StorageUtil.getReaderConfig("appSkin") === "system" &&
+              StorageUtil.getReaderConfig("isOSNight") === "yes")
           ? "white"
           : ""
       } !important;letter-spacing: ${
@@ -75,10 +81,10 @@ class styleUtil {
           : ""
       };margin-bottom: ${
         StorageUtil.getReaderConfig("paraSpacing") || 0
-      }px !important;padding:0;word-wrap: break-word;`;
+      }px !important;padding:0px;word-wrap: break-word;`;
     } else {
       return {
-        "a, article, cite, code, div, li, p, pre, span, table": {
+        "a, article, cite, code, div, li, p, pre, span, table, body": {
           "font-size": `${
             StorageUtil.getReaderConfig("fontSize") || 17
           }px !important`,
@@ -86,14 +92,17 @@ class styleUtil {
             StorageUtil.getReaderConfig("lineHeight") || "1.25"
           } !important`,
           "font-family": `${
-            StorageUtil.getReaderConfig("fontFamily") || "Helvetica"
+            StorageUtil.getReaderConfig("fontFamily") || ""
           } !important`,
+          "background-color": "transparent",
           color: `${
             StorageUtil.getReaderConfig("textColor")
               ? StorageUtil.getReaderConfig("textColor")
               : StorageUtil.getReaderConfig("backgroundColor") ===
                   "rgba(44,47,49,1)" ||
-                StorageUtil.getReaderConfig("isDisplayDark") === "yes"
+                StorageUtil.getReaderConfig("appSkin") === "night" ||
+                (StorageUtil.getReaderConfig("appSkin") === "system" &&
+                  StorageUtil.getReaderConfig("isOSNight") === "yes")
               ? "white"
               : ""
           } !important`,
@@ -133,6 +142,9 @@ class styleUtil {
           "margin-bottom": `${
             StorageUtil.getReaderConfig("paraSpacing") || 0
           }px !important`,
+        },
+        body: {
+          padding: "0px !important",
         },
       };
     }

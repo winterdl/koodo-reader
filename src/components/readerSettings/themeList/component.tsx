@@ -4,11 +4,13 @@ import StyleUtil from "../../../utils/readUtils/styleUtil";
 import "./themeList.css";
 import { Trans } from "react-i18next";
 import { ThemeListProps, ThemeListState } from "./interface";
-import StorageUtil from "../../../utils/storageUtil";
+import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import { Panel as ColorPickerPanel } from "rc-color-picker";
 import "rc-color-picker/assets/index.css";
 import ThemeUtil from "../../../utils/readUtils/themeUtil";
 import { Tooltip } from "react-tippy";
+import toast from "react-hot-toast";
+import { isElectron } from "react-device-detect";
 
 class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
   constructor(props: ThemeListProps) {
@@ -41,36 +43,17 @@ class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
       currentBackgroundIndex: index,
     });
     if (index === 1) {
-      this.props.currentEpub.rendition &&
-        this.props.currentEpub.rendition.themes.default({
-          "a, article, cite, code, div, li, p, pre, span, table": {
-            color: `white !important`,
-          },
-        });
       StorageUtil.setReaderConfig("textColor", "rgba(255,255,255,1)");
     } else if (
       index === 0 &&
       StorageUtil.getReaderConfig("backgroundColor") === "rgba(255,255,255,1)"
     ) {
-      this.props.currentEpub.rendition &&
-        this.props.currentEpub.rendition.themes.default({
-          "a, article, cite, code, div, li, p, pre, span, table": {
-            color: `black !important`,
-          },
-        });
       StorageUtil.setReaderConfig("textColor", "rgba(0,0,0,1)");
-    } else {
-      this.props.currentEpub.rendition &&
-        this.props.currentEpub.rendition.themes.default({
-          "a, article, cite, code, div, li, p, pre, span, table": {
-            color: `inherit !important`,
-          },
-        });
     }
-    if (!this.props.currentEpub.rendition) {
-      this.props.renderFunc();
+    if (isElectron) {
+      toast(this.props.t("Take effect at next startup"));
     } else {
-      StyleUtil.addDefaultCss();
+      window.location.reload();
     }
   };
 
@@ -118,15 +101,7 @@ class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
       "textColor",
       typeof color === "object" ? color.color : color
     );
-    this.props.currentEpub.rendition &&
-      this.props.currentEpub.rendition.themes.default({
-        "a, article, cite, code, div, li, p, pre, span, table": {
-          color: `${
-            typeof color === "object" ? color.color : color
-          } !important`,
-        },
-      });
-    this.props.renderFunc();
+    this.props.renderBookFunc();
   };
   render() {
     const renderBackgroundColorList = () => {

@@ -8,20 +8,8 @@ export function handlePercentage(percentage: number) {
 }
 export function handleFetchPercentage(book: BookModel) {
   return (dispatch: (arg0: { type: string; payload: any }) => void) => {
-    let percentage;
-    percentage = RecordLocation.getCfi(book.key).percentage;
+    let percentage = RecordLocation.getHtmlLocation(book.key).percentage;
+
     dispatch(handlePercentage(percentage));
-  };
-}
-export function handleFetchLocations(epub: any) {
-  return (dispatch: (arg0: { type: string; payload: any }) => void) => {
-    epub.locations
-      .generate()
-      .then((result: any) => {
-        dispatch(handleLocations(epub.locations));
-      })
-      .catch(() => {
-        console.log("Error occurs");
-      });
   };
 }

@@ -1,5 +1,5 @@
 import localforage from "localforage";
-import StorageUtil from "../../utils/storageUtil";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
 import SortUtil from "../../utils/readUtils/sortUtil";
 import BookModel from "../../model/Book";
 import { Dispatch } from "redux";
@@ -88,6 +88,12 @@ export function handleFetchBookSortCode() {
   return (dispatch: Dispatch) => {
     let bookSortCode = SortUtil.getBookSortCode();
     dispatch(handleBookSortCode(bookSortCode));
+  };
+}
+export function handleFetchNoteSortCode() {
+  return (dispatch: Dispatch) => {
+    let noteSortCode = SortUtil.getNoteSortCode();
+    dispatch(handleNoteSortCode(noteSortCode));
   };
 }
 export function handleFetchList() {

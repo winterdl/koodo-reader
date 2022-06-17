@@ -2,7 +2,7 @@ import React from "react";
 import { SettingSwitchProps, SettingSwitchState } from "./interface";
 import { Trans } from "react-i18next";
 import TextToSpeech from "../../textToSpeech";
-import StorageUtil from "../../../utils/storageUtil";
+import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import { readerSettingList } from "../../../constants/settingList";
 import { isElectron } from "react-device-detect";
 import toast from "react-hot-toast";
@@ -15,6 +15,7 @@ class SettingSwitch extends React.Component<
     this.state = {
       isBold: StorageUtil.getReaderConfig("isBold") === "yes",
       isIndent: StorageUtil.getReaderConfig("isIndent") === "yes",
+      isSliding: StorageUtil.getReaderConfig("isSliding") === "yes",
       isUnderline: StorageUtil.getReaderConfig("isUnderline") === "yes",
       isShadow: StorageUtil.getReaderConfig("isShadow") === "yes",
       isItalic: StorageUtil.getReaderConfig("isItalic") === "yes",
@@ -44,8 +45,9 @@ class SettingSwitch extends React.Component<
         stateName,
         this.state[stateName] ? "yes" : "no"
       );
+      toast(this.props.t("Change Successfully"));
       setTimeout(() => {
-        this.props.renderFunc();
+        this.props.renderBookFunc();
       }, 500);
     });
   };
@@ -65,7 +67,7 @@ class SettingSwitch extends React.Component<
   render() {
     return (
       <>
-        {Object.keys(this.props.currentEpub).length !== 0 && <TextToSpeech />}
+        <TextToSpeech />
         {readerSettingList.map((item) => (
           <div className="single-control-switch-container" key={item.title}>
             <span className="single-control-switch-title">
@@ -81,6 +83,9 @@ class SettingSwitch extends React.Component<
                     break;
                   case "isIndent":
                     this._handleChange("isIndent");
+                    break;
+                  case "isSliding":
+                    this._handleChange("isSliding");
                     break;
                   case "isItalic":
                     this._handleChange("isItalic");

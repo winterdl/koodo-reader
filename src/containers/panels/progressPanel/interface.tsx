@@ -1,17 +1,17 @@
 import BookModel from "../../../model/Book";
+import HtmlBookModel from "../../../model/HtmlBook";
 
 export interface ProgressPanelProps {
-  currentEpub: any;
   currentBook: BookModel;
-  percentage: number;
-  locations: any;
-  flattenChapters: any;
-  handleFetchPercentage: (currentBook: BookModel) => void;
+  isReading: boolean;
+  currentChapter: string;
+  currentChapterIndex: number;
   t: (title: string) => string;
+  percentage: number;
+  htmlBook: HtmlBookModel;
+  renderBookFunc: (id: string) => void;
 }
 export interface ProgressPanelState {
-  displayPercentage: number;
   currentPage: number;
   totalPage: number;
-  currentChapterIndex: number;
 }

@@ -3,7 +3,6 @@ import "./importLocal.css";
 import BookModel from "../../model/Book";
 import localforage from "localforage";
 import { fetchMD5 } from "../../utils/fileUtils/md5Util";
-import { addEpub } from "../../utils/fileUtils/epubUtil";
 import { Trans } from "react-i18next";
 import Dropzone from "react-dropzone";
 import { Tooltip } from "react-tippy";
@@ -12,12 +11,9 @@ import RecordRecent from "../../utils/readUtils/recordRecent";
 import { isElectron } from "react-device-detect";
 import { withRouter } from "react-router-dom";
 import BookUtil from "../../utils/fileUtils/bookUtil";
-import {
-  fetchFileFromPath,
-  fetchMD5FromPath,
-} from "../../utils/fileUtils/fileUtil";
+import { fetchFileFromPath } from "../../utils/fileUtils/fileUtil";
 import toast from "react-hot-toast";
-import StorageUtil from "../../utils/storageUtil";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
 declare var window: any;
 let clickFilePath = "";
 
@@ -60,7 +56,7 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
   }
   handleFilePath = async (filePath: string) => {
     clickFilePath = filePath;
-    let md5 = await fetchMD5FromPath(filePath);
+    let md5 = await fetchMD5(await fetchFileFromPath(filePath));
     if ([...(this.props.books || []), ...this.props.deletedBooks].length > 0) {
       let isRepeat = false;
       let repeatBook: BookModel | null = null;
@@ -164,7 +160,10 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
   };
 
   handleBook = (file: any, md5: string) => {
-    let extension = file.name.split(".").reverse()[0];
+    let extension = (file.name as string)
+      .split(".")
+      .reverse()[0]
+      .toLocaleLowerCase();
     let bookName = file.name.substr(0, file.name.length - extension.length - 1);
     let result: BookModel | Boolean;
     return new Promise<void>((resolve, reject) => {
@@ -175,7 +174,7 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
       ) {
         [...(this.props.books || []), ...this.props.deletedBooks].forEach(
           (item) => {
-            if (item.md5 === md5) {
+            if (item.md5 === md5 && item.size === file.size) {
               isRepeat = true;
               toast.error(this.props.t("Duplicate Book"));
               resolve();
@@ -187,62 +186,43 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
       if (!isRepeat) {
         let reader = new FileReader();
         reader.readAsArrayBuffer(file);
+
         reader.onload = async (e) => {
           if (!e.target) {
             toast.error(this.props.t("Import Failed"));
             reject();
             throw new Error();
           }
-          if (
-            extension === "pdf" ||
-            extension === "azw3" ||
-            extension === "mobi" ||
-            extension === "txt" ||
-            extension === "djvu" ||
-            extension === "docx" ||
-            extension === "md" ||
-            extension === "cbz" ||
-            extension === "tml" ||
-            extension === "html" ||
-            extension === "xml" ||
-            extension === "xhtml" ||
-            extension === "cbr" ||
-            extension === "cbt" ||
-            extension === "rtf" ||
-            extension === "fb2"
-          ) {
-            let reader = new FileReader();
-            reader.onload = async (event) => {
-              const file_content = (event.target as any).result;
-              result = BookUtil.generateBook(
-                bookName,
-                extension,
-                md5,
-                file.size,
-                file.path || clickFilePath
-              );
-              clickFilePath = "";
-              await this.handleAddBook(result, file_content as ArrayBuffer);
 
-              resolve();
-            };
-            reader.readAsArrayBuffer(file);
-          } else {
-            result = await addEpub(file, md5, clickFilePath);
+          let reader = new FileReader();
+          reader.onload = async (event) => {
+            const file_content = (event.target as any).result;
+            result = await BookUtil.generateBook(
+              bookName,
+              extension,
+              md5,
+              file.size,
+              file.path || clickFilePath,
+              file_content
+            );
             clickFilePath = "";
             if (!result) {
-              toast.error(this.props.t("Import Failed"));
-              reject();
-              throw new Error();
-            } else {
-              await this.handleAddBook(
-                result as BookModel,
-                e.target?.result as ArrayBuffer
+              toast.error(
+                this.props.t(
+                  "You may see this error when the book you're importing is not supported by Koodo Reader, try converting it with Calibre"
+                )
               );
-
-              resolve();
+              reject();
+              return;
             }
-          }
+            await this.handleAddBook(
+              result as BookModel,
+              file_content as ArrayBuffer
+            );
+
+            resolve();
+          };
+          reader.readAsArrayBuffer(file);
         };
       }
     });
@@ -291,7 +271,7 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
             <div className="animation-mask-local"></div>
             {this.props.isCollapsed && this.state.width < 950 ? (
               <Tooltip
-                title={this.props.t("Import from Local")}
+                title={this.props.t("Import")}
                 position="top"
                 style={{ height: "20px" }}
                 trigger="mouseenter"
@@ -303,7 +283,7 @@ class ImportLocal extends React.Component<ImportLocalProps, ImportLocalState> {
               </Tooltip>
             ) : (
               <span>
-                <Trans>Import from Local</Trans>
+                <Trans>Import</Trans>
               </span>
             )}
 

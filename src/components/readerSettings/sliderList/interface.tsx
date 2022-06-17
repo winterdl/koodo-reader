@@ -1,5 +1,4 @@
 export interface SliderListProps {
-  currentEpub: any;
   maxValue: string;
   minValue: string;
   mode: string;
@@ -7,7 +6,7 @@ export interface SliderListProps {
   title: string;
   minLabel: string;
   maxLabel: string;
-  renderFunc: () => void;
+  renderBookFunc: () => void;
   t: (title: string) => string;
 }
 export interface SliderListState {

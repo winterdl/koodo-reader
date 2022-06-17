@@ -11,9 +11,11 @@ import Router from "./router/index";
 import StyleUtil from "./utils/readUtils/styleUtil";
 import { isElectron } from "react-device-detect";
 import { dropdownList } from "./constants/dropdownList";
-import StorageUtil from "./utils/storageUtil";
-import ga from "./utils/analytics";
-
+import StorageUtil from "./utils/serviceUtils/storageUtil";
+import ga from "./utils/serviceUtils/analytics";
+import { initSystemFont, initTheme } from "./utils/serviceUtils/launchUtil";
+initTheme();
+initSystemFont();
 ReactDOM.render(
   <Provider store={store}>
     <Router />
@@ -21,22 +23,17 @@ ReactDOM.render(
   document.getElementById("root")
 );
 
-let coverLoading: any = document.querySelector(".loading-cover");
-coverLoading && coverLoading.parentNode.removeChild(coverLoading);
-
 if (isElectron && StorageUtil.getReaderConfig("isDisableAnalytics") !== "yes") {
   ga.event("Client", "show", {
     evLabel: "startup",
   });
+} else if (StorageUtil.getReaderConfig("isDisableAnalytics") === "yes") {
+  ga.removeScript();
 }
-if (
-  isElectron &&
-  navigator.appVersion.indexOf("NT 6.1") === -1 &&
-  navigator.appVersion.indexOf("NT 5.1") === -1 &&
-  navigator.appVersion.indexOf("NT 6.0") === -1
-) {
+if (isElectron) {
   const fontList = window.require("font-list");
   fontList.getFonts({ disableQuoting: true }).then((result) => {
+    if (!result || result.length === 0) return;
     dropdownList[0].option = result;
     dropdownList[0].option.push("Built-in font");
   });

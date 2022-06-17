@@ -15,14 +15,16 @@ export interface SettingInfoState {
   isTouch: boolean;
   isPreventTrigger: boolean;
   isMergeWord: boolean;
+  appSkin: string;
   isImportPath: boolean;
   isOpenBook: boolean;
-  isDisplayDark: boolean;
   isExpandContent: boolean;
   isPreventSleep: boolean;
   isOpenInMain: boolean;
   isDisableUpdate: boolean;
   isDisableAnalytics: boolean;
+  isUseBuiltIn: boolean;
+  isPDFCover: boolean;
   isAutoFullscreen: boolean;
   isPreventAdd: boolean;
   currentThemeIndex: number;

@@ -2,7 +2,7 @@ import React from "react";
 import { TextToSpeechProps, TextToSpeechState } from "./interface";
 import { Trans } from "react-i18next";
 import { speedList } from "../../constants/dropdownList";
-import StorageUtil from "../../utils/storageUtil";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
 
 class TextToSpeech extends React.Component<
   TextToSpeechProps,
@@ -63,42 +63,33 @@ class TextToSpeech extends React.Component<
                   speedList.option.indexOf(
                     StorageUtil.getReaderConfig("voiceSpeed") || "1"
                   )
-                ].setAttribute("selected", "selected");
+                ]?.setAttribute("selected", "selected");
               document
                 .querySelector("#text-speech-voice")!
                 .children[
                   StorageUtil.getReaderConfig("voiceIndex") || 0
-                ].setAttribute("selected", "selected");
+                ]?.setAttribute("selected", "selected");
             }
           });
         });
       });
     }
   };
-  handleAudio = () => {
-    const currentLocation = this.props.currentEpub.rendition.currentLocation();
-    const cfibase = currentLocation.start.cfi
-      .replace(/!.*/, "")
-      .replace("epubcfi(", "");
-    const cfistart = currentLocation.start.cfi
-      .replace(/.*!/, "")
-      .replace(/\)/, "");
-    const cfiend = currentLocation.end.cfi.replace(/.*!/, "").replace(/\)/, "");
-    const cfiRange = `epubcfi(${cfibase}!,${cfistart},${cfiend})`;
-    this.props.currentEpub.getRange(cfiRange).then((range: any) => {
-      let text = range.toString();
-      text = text
-        .replace(/\s\s/g, "")
-        .replace(/\r/g, "")
-        .replace(/\n/g, "")
-        .replace(/\t/g, "")
-        .replace(/\f/g, "");
-      this.handleSpeech(
-        text,
-        StorageUtil.getReaderConfig("voiceIndex") || 0,
-        StorageUtil.getReaderConfig("voiceSpeed") || 1
-      );
-    });
+  handleAudio = async () => {
+    let text = "";
+
+    text = await this.props.htmlBook.rendition.visibleText();
+    text = text
+      .replace(/\s\s/g, "")
+      .replace(/\r/g, "")
+      .replace(/\n/g, "")
+      .replace(/\t/g, "")
+      .replace(/\f/g, "");
+    this.handleSpeech(
+      text,
+      StorageUtil.getReaderConfig("voiceIndex") || 0,
+      StorageUtil.getReaderConfig("voiceSpeed") || 1
+    );
   };
   handleSpeech = (text: string, voiceIndex: number, speed: number) => {
     var msg = new SpeechSynthesisUtterance();
@@ -114,9 +105,8 @@ class TextToSpeech extends React.Component<
       if (!(this.state.isAudioOn && this.props.isReading)) {
         return;
       }
-      this.props.currentEpub.rendition.next().then(() => {
-        this.handleAudio();
-      });
+      this.props.htmlBook.rendition.next();
+      this.handleAudio();
     };
   };
 
@@ -127,7 +117,7 @@ class TextToSpeech extends React.Component<
           <>
             <div className="single-control-switch-container">
               <span className="single-control-switch-title">
-                <Trans>Turn on audio</Trans>
+                <Trans>Turn on text-to-speech</Trans>
               </span>
 
               <span
@@ -178,7 +168,11 @@ class TextToSpeech extends React.Component<
                 >
                   {this.state.voices.map((item, index) => {
                     return (
-                      <option value={index} className="lang-setting-option">
+                      <option
+                        value={index}
+                        key={item.name}
+                        className="lang-setting-option"
+                      >
                         {item.name}
                       </option>
                     );
