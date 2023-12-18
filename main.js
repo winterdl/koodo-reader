@@ -13,9 +13,9 @@ const Store = require("electron-store");
 const store = new Store();
 const fs = require("fs");
 const configDir = app.getPath("userData");
+const { ra } = require("./edge-tts");
 const dirPath = path.join(configDir, "uploads");
 let mainWin;
-let readerWindow;
 const singleInstance = app.requestSingleInstanceLock();
 var filePath = null;
 if (process.platform != "darwin" && process.argv.length >= 2) {
@@ -24,6 +24,7 @@ if (process.platform != "darwin" && process.argv.length >= 2) {
 let options = {
   width: 1050,
   height: 660,
+  backgroundColor: "#fff",
   webPreferences: {
     webSecurity: false,
     nodeIntegration: true,
@@ -41,7 +42,8 @@ if (!singleInstance) {
   if (filePath) {
     fs.writeFileSync(
       path.join(dirPath, "log.json"),
-      JSON.stringify({ filePath })
+      JSON.stringify({ filePath }),
+      "utf-8"
     );
   }
 } else {
@@ -66,9 +68,9 @@ const createMainWin = () => {
   mainWin.on("close", () => {
     mainWin = null;
   });
-
   ipcMain.handle("open-book", (event, config) => {
     let { url, isMergeWord, isFullscreen, isPreventSleep } = config;
+    options.webPreferences.nodeIntegrationInSubFrames = true;
     store.set({
       url,
       isMergeWord: isMergeWord ? isMergeWord : "no",
@@ -88,8 +90,8 @@ const createMainWin = () => {
     } else {
       readerWindow = new BrowserWindow({
         ...options,
-        width: parseInt(store.get("windowWidth")),
-        height: parseInt(store.get("windowHeight")),
+        width: parseInt(store.get("windowWidth") || 1050),
+        height: parseInt(store.get("windowHeight") || 660),
         x: parseInt(store.get("windowX")),
         y: parseInt(store.get("windowY")),
         frame: isMergeWord === "yes" ? false : true,
@@ -117,13 +119,57 @@ const createMainWin = () => {
 
     event.returnValue = "success";
   });
+  ipcMain.handle("edge-tts", async (event, config) => {
+    console.log(dirPath);
+    let { text } = config;
+    let audioName = new Date().getTime() + ".webm";
+    if (!fs.existsSync(path.join(dirPath, "tts"))) {
+      fs.mkdirSync(path.join(dirPath, "tts"));
+      fs.writeFileSync(path.join(dirPath, "tts", audioName), await ra(text));
+      console.log("文件夹创建成功");
+    } else {
+      fs.writeFileSync(path.join(dirPath, "tts", audioName), await ra(text));
+      console.log("文件夹已存在");
+    }
 
+    return path.join(dirPath, "tts", audioName);
+  });
+  ipcMain.handle("clear-tts", async (event, config) => {
+    if (!fs.existsSync(path.join(dirPath, "tts"))) {
+      return "pong";
+    } else {
+      const fsExtra = require("fs-extra");
+      try {
+        await fsExtra.remove(path.join(dirPath, "tts"));
+        await fsExtra.mkdir(path.join(dirPath, "tts"));
+        console.log("success!");
+        return "pong";
+      } catch (err) {
+        console.error(err);
+        return "pong";
+      }
+    }
+  });
   ipcMain.handle("change-path", async (event) => {
     var path = await dialog.showOpenDialog({
       properties: ["openDirectory"],
     });
-
     return path;
+  });
+  ipcMain.handle("get-url-content", async (event, config) => {
+    const axios = require("axios");
+    try {
+      const response = await axios.get(config.url, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   });
   ipcMain.on("storage-location", (event, arg) => {
     event.returnValue = path.join(dirPath, "data");
@@ -145,6 +191,16 @@ const createMainWin = () => {
   ipcMain.handle("open-console", (event, arg) => {
     mainWin.webContents.openDevTools();
     event.returnvalue = true;
+  });
+  ipcMain.handle("reload-reader", (event, arg) => {
+    if (readerWindow) {
+      readerWindow.reload();
+    }
+  });
+  ipcMain.handle("reload-main", (event, arg) => {
+    if (mainWin) {
+      mainWin.reload();
+    }
   });
   ipcMain.handle("focus-on-main", (event, arg) => {
     if (mainWin) {
@@ -178,14 +234,16 @@ const createMainWin = () => {
     if (readerWindow) {
       readerWindow.close();
       Object.assign(options, {
-        width: parseInt(store.get("windowWidth")),
-        height: parseInt(store.get("windowHeight")),
+        width: parseInt(store.get("windowWidth") || 1050),
+        height: parseInt(store.get("windowHeight") || 660),
         x: parseInt(store.get("windowX")),
         y: parseInt(store.get("windowY")),
         frame: store.get("isMergeWord") !== "yes" ? false : true,
         hasShadow: store.get("isMergeWord") !== "yes" ? false : true,
         transparent: store.get("isMergeWord") !== "yes" ? true : false,
       });
+      options.webPreferences.nodeIntegrationInSubFrames = true;
+
       store.set(
         "isMergeWord",
         store.get("isMergeWord") !== "yes" ? "yes" : "no"
@@ -223,11 +281,11 @@ const createMainWin = () => {
   ipcMain.on("get-file-data", function (event) {
     if (fs.existsSync(path.join(dirPath, "log.json"))) {
       const _data = JSON.parse(
-        fs.readFileSync(path.join(dirPath, "log.json"), "utf8") || "{}"
+        fs.readFileSync(path.join(dirPath, "log.json"), "utf-8") || "{}"
       );
       if (_data && _data.filePath) {
         filePath = _data.filePath;
-        fs.writeFileSync(path.join(dirPath, "log.json"), "");
+        fs.writeFileSync(path.join(dirPath, "log.json"), "", "utf-8");
       }
     }
 

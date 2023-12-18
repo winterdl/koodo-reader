@@ -7,11 +7,13 @@ import {
   handleDragItem,
   handleFetchBooks,
   handleSelectedBooks,
+  handleSelectBook,
+  handleActionDialog,
 } from "../../store/actions";
 import { withTranslation } from "react-i18next";
 
 import { stateType } from "../../store";
-import BookItem from "./component";
+import BookListItem from "./component";
 const mapStateToProps = (state: stateType) => {
   return {
     isReading: state.book.isReading,
@@ -21,6 +23,7 @@ const mapStateToProps = (state: stateType) => {
     mode: state.sidebar.mode,
     isSelectBook: state.manager.isSelectBook,
     selectedBooks: state.manager.selectedBooks,
+    isOpenActionDialog: state.book.isOpenActionDialog,
   };
 };
 const actionCreator = {
@@ -28,11 +31,13 @@ const actionCreator = {
   handleEditDialog,
   handleDeleteDialog,
   handleAddDialog,
+  handleActionDialog,
   handleDragItem,
+  handleSelectBook,
   handleFetchBooks,
   handleSelectedBooks,
 };
 export default connect(
   mapStateToProps,
   actionCreator
-)(withTranslation()(BookItem as any));
+)(withTranslation()(BookListItem as any) as any);

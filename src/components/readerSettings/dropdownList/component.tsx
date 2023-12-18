@@ -20,10 +20,12 @@ class DropdownList extends React.Component<
         );
       }),
       currentLineHeightIndex: dropdownList[1].option.findIndex((item: any) => {
-        return item === (StorageUtil.getReaderConfig("lineHeight") || "1.25");
+        return (
+          item === (StorageUtil.getReaderConfig("lineHeight") || "Default")
+        );
       }),
       currentTextAlignIndex: dropdownList[2].option.findIndex((item: any) => {
-        return item === (StorageUtil.getReaderConfig("textAlign") || "left");
+        return item === (StorageUtil.getReaderConfig("textAlign") || "Default");
       }),
       chineseConversionIndex: dropdownList[3].option.findIndex((item: any) => {
         return (
@@ -62,6 +64,14 @@ class DropdownList extends React.Component<
           }
         );
       });
+    } else {
+      document
+        .querySelector(".paragraph-character-setting")!
+        .children[0].children[1].children[
+          this.state.currentFontFamilyIndex === -1
+            ? 0
+            : this.state.currentFontFamilyIndex
+        ]?.setAttribute("selected", "selected");
     }
 
     document

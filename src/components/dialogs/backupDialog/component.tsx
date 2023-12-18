@@ -11,9 +11,10 @@ import TokenDialog from "../tokenDialog";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import Lottie from "react-lottie";
 import animationSuccess from "../../../assets/lotties/success.json";
-import FileSaver from "file-saver";
+
 import toast from "react-hot-toast";
 import { isElectron } from "react-device-detect";
+declare var window: any;
 const successOptions = {
   loop: false,
   autoplay: true,
@@ -47,10 +48,13 @@ class BackupDialog extends React.Component<
   handleRestoreToLocal = async (event: any) => {
     event.preventDefault();
     this.props.handleLoadingDialog(true);
-    let result = await restore(event.target.files[0]);
-    if (result) {
-      this.handleFinish();
-    }
+    //Fix animation issue
+    setTimeout(async () => {
+      let result = await restore(event.target.files[0]);
+      if (result) {
+        this.handleFinish();
+      }
+    }, 10);
   };
   showMessage = (message: string) => {
     toast(this.props.t(message));
@@ -71,7 +75,7 @@ class BackupDialog extends React.Component<
           if (!blob) {
             this.showMessage("Backup Failed");
           }
-          FileSaver.saveAs(
+          window.saveAs(
             blob as Blob,
             `${year}-${month <= 9 ? "0" + month : month}-${
               day <= 9 ? "0" + day : day
@@ -236,6 +240,15 @@ class BackupDialog extends React.Component<
 
     return (
       <div className="backup-page-container">
+        {this.state.currentStep === 0 && this.state.isBackup === "no" && (
+          <div className="restore-warning">
+            <Trans>
+              This process is inreversible, and will completely overwrite your
+              current library, make sure you know what you're doing before
+              proceeding
+            </Trans>
+          </div>
+        )}
         {this.props.isOpenTokenDialog ? <TokenDialog {...dialogProps} /> : null}
         {this.state.currentStep === 0 ? (
           <div className="backup-page-title">
@@ -263,7 +276,7 @@ class BackupDialog extends React.Component<
               }}
             >
               <span className="icon-backup"></span>
-              <div style={{ lineHeight: 1.25 }}>
+              <div style={{ lineHeight: 1.0 }}>
                 <Trans>Backup</Trans>
               </div>
             </div>
@@ -274,12 +287,21 @@ class BackupDialog extends React.Component<
                   ? "backup-page-backup active"
                   : "backup-page-backup"
               }
-              onClick={() => {
+              onClick={(event) => {
+                if (!isElectron) {
+                  event.preventDefault();
+                  toast(
+                    this.props.t(
+                      "Koodo Reader's web version are limited by the browser, for more powerful features, please download the desktop version."
+                    )
+                  );
+                  return;
+                }
                 this.setState({ isBackup: "no" });
               }}
             >
               <span className="icon-restore"></span>
-              <div>
+              <div style={{ lineHeight: 1.0 }}>
                 <Trans>Restore</Trans>
               </div>
             </div>

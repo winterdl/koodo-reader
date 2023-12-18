@@ -42,6 +42,30 @@ export const settingList = [
     propName: "isExpandContent",
   },
   {
+    isElectron: false,
+    title: "No popup when selecting texts",
+    desc: "Turn it on when you want Koodo to work with other third-party translation service, right clicking on the selected text will trigger popup again",
+    propName: "isDisablePopup",
+  },
+  {
+    isElectron: false,
+    title: "Disable trash bin",
+    desc: "When deleting books, they will be deleted permanetly instead of sending to trash bin",
+    propName: "isDisableTrashBin",
+  },
+  {
+    isElectron: false,
+    title: "Hide books already added to the shelf",
+    desc: "Hide books which have been added to the shelf, so they won't show up in home page",
+    propName: "isHideShelfBook",
+  },
+  {
+    isElectron: false,
+    title: "Delete book from shelf also deleting book itself",
+    desc: "When deleting book from shelf, the book will be deleted as well",
+    propName: "isDeleteShelfBook",
+  },
+  {
     isElectron: true,
     title: "Disable screen blanking",
     desc: "When Koodo is running, your computer won't enter sleep mode",
@@ -54,10 +78,22 @@ export const settingList = [
     propName: "isPreventAdd",
   },
   {
+    isElectron: true,
+    title: "Lemmatize words when looking up in a dictionary",
+    desc: "To reduce the different forms of a word to one single form, for example, reducing builds, building or built to build, reducing cats to cat, reducing fastest to fast",
+    propName: "isLemmatizeWord",
+  },
+  {
     isElectron: false,
     title: "Open books in the main window",
     desc: "Book won't be opened in a seperate window but directly opened in the main window",
     propName: "isOpenInMain",
+  },
+  {
+    isElectron: false,
+    title: "Auto precache books after import",
+    desc: "Precache books after import to increase opening speed, Koodo will generate a precache version of the original book and save it into your library",
+    propName: "isPrecacheBook",
   },
   {
     isElectron: true,
@@ -66,13 +102,13 @@ export const settingList = [
   },
   {
     isElectron: false,
-    title: "Disable analytics service",
-    propName: "isDisableAnalytics",
+    title: "Don't use first page as PDF cover",
+    propName: "isDisablePDFCover",
   },
   {
     isElectron: false,
-    title: "Use first page as PDF cover",
-    propName: "isPDFCover",
+    title: "Don't crop book cover",
+    propName: "isDisableCrop",
   },
   {
     isElectron: true,
@@ -81,18 +117,31 @@ export const settingList = [
   },
 ];
 export const langList = [
-  { label: "简体中文", value: "zh" },
-  { label: "繁體中文", value: "cht" },
+  { label: "简体中文", value: "zhCN" },
+  { label: "繁體中文", value: "zhTW" },
+  { label: "繁體中文-澳門", value: "zhMO" },
   { label: "English", value: "en" },
-  { label: "русский", value: "ru" },
+  { label: "Pусский", value: "ru" },
   { label: "Español", value: "es" },
   { label: "Français", value: "fr" },
   { label: "Português", value: "ptBR" },
   { label: "فارسی", value: "fa" },
   { label: "日本語", value: "jp" },
+  { label: "Türkçe", value: "tr" },
+  { label: "عربي", value: "ar" },
   { label: "čeština", value: "cs" },
   { label: "Deutsch", value: "de" },
-  { label: "한국인", value: "ko" },
+  { label: "한국어", value: "ko" },
+  { label: "Polski", value: "pl" },
+  { label: "Română", value: "ro" },
+  { label: "แบบไทย", value: "th" },
+  { label: "italiano", value: "it" },
+  { label: "Nederlands", value: "nl" },
+  { label: "বাংলা", value: "bn" },
+  { label: "български", value: "bg" },
+  { label: "bahasa Indonesia", value: "id" },
+  { label: "հայերեն", value: "hy" },
+  { label: "བོད་སྐད།", value: "bo" },
 ];
 
 export const searchList = [
@@ -107,9 +156,9 @@ export const searchList = [
   { label: "Wikipedia", value: "wiki" },
 ];
 export const skinList = [
+  { label: "Follow OS", value: "system" },
   { label: "Light Mode", value: "light" },
   { label: "Night Mode", value: "night" },
-  { label: "Follow OS", value: "system" },
 ];
 
 export const readerSettingList = [
@@ -140,6 +189,10 @@ export const readerSettingList = [
   {
     title: "Invert color",
     propName: "isInvert",
+  },
+  {
+    title: "Turn on Bionic Reading",
+    propName: "isBionic",
   },
   {
     title: "Hide footer",

@@ -5,6 +5,7 @@ import {
   handleDragItem,
   handleDeleteDialog,
   handleSelectedBooks,
+  handleSelectBook,
 } from "../../store/actions";
 import BookCoverItem from "./component";
 import { stateType } from "../../store";
@@ -12,6 +13,8 @@ import { withTranslation } from "react-i18next";
 
 const mapStateToProps = (state: stateType) => {
   return {
+    mode: state.sidebar.mode,
+
     isOpenActionDialog: state.book.isOpenActionDialog,
     isCollapsed: state.sidebar.isCollapsed,
     dragItem: state.book.dragItem,
@@ -25,9 +28,10 @@ const actionCreator = {
   handleActionDialog,
   handleDragItem,
   handleDeleteDialog,
+  handleSelectBook,
   handleSelectedBooks,
 };
 export default connect(
   mapStateToProps,
   actionCreator
-)(withTranslation()(BookCoverItem));
+)(withTranslation()(BookCoverItem as any) as any);

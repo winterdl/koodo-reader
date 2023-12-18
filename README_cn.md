@@ -1,6 +1,6 @@
 <div align="left">
 
-简体中文 | [English](https://github.com/troyeguo/koodo-reader/blob/master/README.md)
+简体中文 | [Português](https://github.com/koodo-reader/koodo-reader/blob/master/README_pt.md) | [English](https://github.com/koodo-reader/koodo-reader/blob/master/README.md)
 
 </div>
 
@@ -34,12 +34,12 @@
 - 支持阅读格式：
   - EPUB (**.epub**)
   - 扫描文档 (**.pdf**, **.djvu**)
-  - Kindle (**.azw3**, **.mobi**)
+  - Kindle (**.azw3**, **.mobi**, **.azw**)
   - 纯文本 (**.txt**)
-  - 漫画 (**.cbr**, **.cbz**, **.cbt**)
-  - 富文本 (**.md**, **.docx**, **.rtf**)
+  - 漫画 (**.cbr**, **.cbz**, **.cbt**, **.cb7**)
+  - 富文本 (**.md**, **.docx**)
   - FB2 (**.fb2**)
-  - 超文本 (**.html**, **.xml**, **.xhtml**, **.htm**)
+  - 超文本 (**.html**, **.xml**, **.xhtml**, **.mhtml**, **.htm**, **.htm**)
 - 支持 **Windows**，**macOS**，**Linux** 和 **网页版**
 - 备份数据到 **Dropbox** 和 **Webdav**
 - 自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步
@@ -53,13 +53,19 @@
 
 - 桌面端：
   - 稳定版 (推荐下载)：[官网](https://koodo.960960.xyz/zh)（感谢 [@Stille](https://www.ioiox.com/donate.html) 提供下载加速服务）
-  - 开发版：[Github Release](https://github.com/troyeguo/koodo-reader/releases/latest) （包含新功能和 bug 修复，但也可能引入更多未知 bug）
+  - 开发版：[Github Release](https://github.com/koodo-reader/koodo-reader/releases/latest) （包含新功能和 bug 修复，但也可能引入更多未知 bug）
 - 网页版：[前往](https://reader.960960.xyz)
 - 使用 Scoop 安装：
 
 ```shell
-scoop bucket add dorado https://github.com/chawyehsu/dorado
-scoop install dorado/koodo-reader
+scoop bucket add extras
+scoop install extras/koodo-reader
+```
+
+- 使用 Winget 安装：
+
+```shell
+winget install -e AppbyTroye.KoodoReader
 ```
 
 - 使用 Homebrew 安装：
@@ -73,6 +79,15 @@ brew install --cask koodo-reader
 ```bash
 docker-compose up -d
 ```
+
+- 使用 Flathub 安装：
+
+```shell
+flatpak install flathub io.github.troyeguo.koodo-reader
+flatpak run io.github.troyeguo.koodo-reader
+```
+
+<a href="https://flathub.org/apps/details/io.github.troyeguo.koodo-reader"><img height="50" alt="Download on Flathub" src="https://flathub.org/assets/badges/flathub-badge-en.png"/></a>
 
 ## 截图
 
@@ -93,12 +108,12 @@ docker-compose up -d
 
 ## 运行源码
 
-请确保您电脑的 node 的版本大于 10.0.0，已配置好 yarn，git 的运行环境。
+请确保您电脑已配置好 yarn，git 的运行环境。
 
 1. 将项目源码下载到本地
 
    ```
-   git clone https://github.com/troyeguo/koodo-reader.git
+   git clone https://github.com/koodo-reader/koodo-reader.git
    ```
 
 2. cd 到项目文件夹，运行以下代码进入客户端模式
