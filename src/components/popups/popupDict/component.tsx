@@ -1,27 +1,33 @@
 import React from "react";
 import "./popupDict.css";
 import { PopupDictProps, PopupDictState } from "./interface";
-import { dictList } from "../../../constants/dictList";
+import {
+  bingLangList,
+  dictList,
+  freeLangList,
+  googleLangList,
+} from "../../../constants/dictList";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import Parser from "html-react-parser";
 import * as DOMPurify from "dompurify";
 import axios from "axios";
-import { getBingDict } from "../../../utils/serviceUtils/bingDictUtil";
-import { openExternalUrl } from "../../../utils/serviceUtils/urlUtil";
 import RecordLocation from "../../../utils/readUtils/recordLocation";
 import DictHistory from "../../../model/DictHistory";
 import { Trans } from "react-i18next";
+import { wikiList } from "../../../constants/dictList";
+import { googleTranslate } from "../../../utils/serviceUtils/googleTransUtil";
+import { getBingDict } from "../../../utils/serviceUtils/bingDictUtil";
 
 declare var window: any;
 class PopupDict extends React.Component<PopupDictProps, PopupDictState> {
   constructor(props: PopupDictProps) {
     super(props);
     this.state = {
-      dictText: "",
+      dictText: this.props.t("Please Wait a moment"),
       word: "",
       prototype: "",
       dictService: StorageUtil.getReaderConfig("dictService"),
-      dictTarget: StorageUtil.getReaderConfig("dictTarget"),
+      dictTarget: StorageUtil.getReaderConfig("dictTarget") || "en",
     };
   }
   componentDidMount() {
@@ -53,80 +59,97 @@ class PopupDict extends React.Component<PopupDictProps, PopupDictState> {
     dictHistoryArr.push(word);
     window.localforage.setItem("words", dictHistoryArr);
   };
+  handleDictText = (res: any) => {
+    return (
+      `<p class="dict-word-type">[${this.props.t("Pronunciations")}]</p></p>` +
+      res.pronunciations
+        .map((item) => {
+          return `<span style="font-weight: bold">${
+            item.region ? item.region : ""
+          }</span> [${item.symbol}]`;
+        })
+        .join(", ") +
+      `<p class="dict-word-type">[${this.props.t("Explanations")}]</p>` +
+      res.explanations
+        .map((item) => {
+          return `<p><span style="font-weight: bold">${
+            item.trait
+          }</span> ${item.explains.join(", ")}</p>`;
+        })
+        .join("") +
+      `<p class="dict-word-type">[${this.props.t("Associations")}]</p></p>` +
+      res.associations
+        .map((item) => {
+          return item;
+        })
+        .join(", ") +
+      `<p class="dict-word-type">[${this.props.t("Sentence")}]</p><ul>` +
+      res.sentence.map((item) => `<li>${item.source}</li>`).join("") +
+      "</ul>"
+    );
+  };
   handleDict = async (text: string) => {
-    if (StorageUtil.getReaderConfig("dictService") === "必应词典") {
-      const { ipcRenderer } = window.require("electron");
-      const html = await ipcRenderer.invoke("get-url-content", {
-        url: `https://cn.bing.com/dict/search?mkt=zh-cn&q=${encodeURIComponent(
-          text
-        )}`,
-      });
-      if (html) {
-        let res: any = await getBingDict(html);
-        if (res === "error") {
+    if (StorageUtil.getReaderConfig("dictService") === "bing_dict") {
+      try {
+        let target = await getBingDict(text);
+
+        if (!target.explanations) {
           this.setState({
             dictText: this.props.t("Error happens"),
           });
           return;
         }
-        let dictText = Object.keys(res)
-          .filter((item) => item !== "result")
-          .map((item) => {
-            if (res[item]) {
-              return `<p><p class="dict-word-type">[${item}]</p> ${res[item]}</p>`;
-            } else {
-              return "";
-            }
-          })
-          .join("");
+        let dictText = this.handleDictText(target);
         this.setState({
           dictText: dictText,
         });
-      } else {
+      } catch (error) {
+        console.log(error);
         this.setState({
           dictText: this.props.t("Error happens"),
         });
       }
-    } else if (
-      StorageUtil.getReaderConfig("dictService") === "Google Dictionary"
-    ) {
-      const { ipcRenderer } = window.require("electron");
-      const html = await ipcRenderer.invoke("get-url-content", {
-        url: `https://www.google.com/search?q=define+${encodeURIComponent(
-          text
-        )}`,
-      });
-      if (html) {
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const parentElement = Array.from(doc.querySelectorAll(".kCrYT"))[1];
-        var aNodes = parentElement.querySelectorAll("a");
-        if (aNodes.length > 0) {
-          this.setState({
-            dictText: this.props.t("Error happens"),
-          });
-          return;
-        }
-        var childElements = parentElement.querySelectorAll(".r0bn4c");
-        // 遍历子元素并移除特定的子元素
-        for (var i = 0; i < childElements.length; i++) {
-          var childElement = childElements[i];
-          if (
-            childElement.textContent &&
-            (childElement.textContent?.indexOf(":") > -1 ||
-              childElement.textContent?.indexOf('"') > -1 ||
-              childElement.textContent?.indexOf("「") > -1)
-          ) {
-            childElement.parentNode &&
-              childElement.parentNode.removeChild(childElement);
+    } else if (StorageUtil.getReaderConfig("dictService") === "google_dict") {
+      googleTranslate(text, "auto", this.state.dictTarget || "en")
+        .then((res) => {
+          if (res.explanations) {
+            let dictText = this.handleDictText(res);
+            this.setState({
+              dictText: dictText,
+            });
+          } else {
+            this.setState({
+              dictText: `<p>${res}</p>`,
+            });
           }
-          if (childElement.textContent) {
-            childElement.textContent = childElement.textContent.trim();
-          }
-        }
-        this.setState({
-          dictText: parentElement.innerHTML,
+        })
+        .catch((err) => {
+          console.log(err);
         });
-      } else {
+      return;
+    } else if (StorageUtil.getReaderConfig("dictService") === "wikipedia") {
+      text = decodeURIComponent(encodeURIComponent(text));
+      try {
+        const res = await axios.get(
+          `https://${this.state.dictTarget}.wikipedia.org/api/rest_v1/page/summary/${text}`
+        );
+        let html = `<img class="wiki-image" style="shape-outside: url('${
+          res.data.originalimage ? res.data.originalimage.source : ""
+        }')" src="${
+          res.data.originalimage ? res.data.originalimage.source : ""
+        }"></img><p class="wiki-text">${
+          this.state.dictTarget === "zh"
+            ? StorageUtil.getReaderConfig("lang") === "zhMO" ||
+              StorageUtil.getReaderConfig("lang") === "zhTW"
+              ? window.ChineseS2T.s2t(res.data.extract)
+              : window.ChineseS2T.t2s(res.data.extract)
+            : res.data.extract
+        }</p>`;
+        this.setState({
+          dictText: html,
+        });
+      } catch (error) {
+        console.log(error);
         this.setState({
           dictText: this.props.t("Error happens"),
         });
@@ -135,26 +158,46 @@ class PopupDict extends React.Component<PopupDictProps, PopupDictState> {
       axios
         .get(`https://api.dictionaryapi.dev/api/v2/entries/en/${text}`)
         .then((res: any) => {
-          let dictText = res.data[0].meanings
-            .map((item) => {
-              return `<p><p class="dict-word-type">[${
-                item.partOfSpeech
-              }]</p><div>${item.definitions
-                .map((item, index) => {
-                  return (
-                    `<span style="font-weight: bold">${index + 1}</span>` +
-                    ". " +
-                    item.definition
-                  );
-                })
-                .join("</div><div>")}</div></p>`;
-            })
-            .join("");
+          let dictText =
+            `<p class="dict-word-type">[${this.props.t(
+              "Pronunciations"
+            )}]</p></p>` +
+            (res.data[0].phonetic ? res.data[0].phonetic : "") +
+            `<br/>` +
+            res.data[0].phonetics
+              .filter((item) => item.audio)
+              .map((item) => {
+                return (
+                  `<span class='audio-label'>${
+                    item.audio.includes("uk") ? "UK" : "US"
+                  } </span>` +
+                  `<span class='audio-label'>${
+                    item.text ? item.text : ""
+                  } </span>` +
+                  `<audio controls class="audio-player"><source src="${item.audio}" type="audio/mpeg"></audio>`
+                );
+              }) +
+            res.data[0].meanings
+              .map((item) => {
+                return `<p><p class="dict-word-type">[${
+                  item.partOfSpeech
+                }]</p><div>${item.definitions
+                  .map((item, index) => {
+                    return (
+                      `<span style="font-weight: bold">${index + 1}</span>` +
+                      ". " +
+                      item.definition
+                    );
+                  })
+                  .join("</div><div>")}</div></p>`;
+              })
+              .join("");
           this.setState({
             dictText: dictText,
           });
         })
         .catch((err) => {
+          console.log(err);
           this.setState({
             dictText: this.props.t("Error happens"),
           });
@@ -170,34 +213,88 @@ class PopupDict extends React.Component<PopupDictProps, PopupDictState> {
               className="dict-service-selector"
               style={{ margin: 0 }}
               onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-                this.setState({ dictService: event.target.value }, () => {
-                  StorageUtil.setReaderConfig(
-                    "dictService",
-                    event.target.value
-                  );
-                  this.setState(
-                    {
-                      dictTarget: "en-en",
-                    },
-                    () => {
-                      StorageUtil.setReaderConfig("dictTarget", "en-en");
-                      this.handleLookUp();
-                    }
-                  );
-                });
+                this.setState(
+                  {
+                    dictService: event.target.value,
+                  },
+                  () => {
+                    StorageUtil.setReaderConfig(
+                      "dictService",
+                      event.target.value
+                    );
+                    this.setState(
+                      {
+                        dictTarget: "en",
+                      },
+                      () => {
+                        StorageUtil.setReaderConfig("dictTarget", "en");
+                        this.handleLookUp();
+                      }
+                    );
+                  }
+                );
               }}
             >
               {dictList.map((item, index) => {
                 return (
                   <option
                     value={item.name}
-                    key={index}
+                    key={item.name}
                     className="add-dialog-shelf-list-option"
                     selected={
                       this.state.dictService === item.name ? true : false
                     }
                   >
-                    {item.name}
+                    {item.title}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          <div className="dict-service-container" style={{ right: 150 }}>
+            <select
+              className="dict-service-selector"
+              style={{ margin: 0 }}
+              onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+                this.setState(
+                  {
+                    dictTarget: event.target.value || "en",
+                  },
+                  () => {
+                    StorageUtil.setReaderConfig(
+                      "dictTarget",
+                      event.target.value
+                    );
+                    this.handleLookUp();
+                  }
+                );
+              }}
+            >
+              {(this.state.dictService === "wikipedia"
+                ? wikiList
+                : this.state.dictService === "bing_dict"
+                ? bingLangList
+                : this.state.dictService === "google_dict"
+                ? googleLangList
+                : freeLangList
+              ).map((item, index) => {
+                return (
+                  <option
+                    value={item.code}
+                    key={item.code}
+                    className="add-dialog-shelf-list-option"
+                    selected={
+                      this.state.dictTarget === item.code ? true : false
+                    }
+                  >
+                    {
+                      item[
+                        this.state.dictService !== "google_dict"
+                          ? "nativeLang"
+                          : "lang"
+                      ]
+                    }
                   </option>
                 );
               })}
@@ -219,33 +316,7 @@ class PopupDict extends React.Component<PopupDictProps, PopupDictState> {
               DOMPurify.sanitize(this.state.dictText + "<address></address>") ||
                 " ",
               {
-                replace: (domNode) => {
-                  if (this.state.dictService === "Yandex.Dictionary") {
-                    if (domNode.name === "address") {
-                      delete domNode.attribs.onclick;
-                      return (
-                        <p
-                          onClick={() => {
-                            openExternalUrl(
-                              this.state.dictService
-                                ? dictList.filter(
-                                    (item) =>
-                                      item.name === this.state.dictService
-                                  )[0].url
-                                : dictList[0].url
-                            );
-                          }}
-                          className="dict-url"
-                        >
-                          {"Powered by " +
-                            (this.state.dictService
-                              ? this.state.dictService
-                              : "Free Dictionary API")}
-                        </p>
-                      );
-                    }
-                  }
-                },
+                replace: (domNode) => {},
               }
             )}
           </div>

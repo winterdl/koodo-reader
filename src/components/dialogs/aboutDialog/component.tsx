@@ -12,6 +12,7 @@ import {
 } from "../../../utils/syncUtils/exportUtil";
 import "./aboutDialog.css";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
+
 declare var window: any;
 class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
   constructor(props: AboutDialogProps) {
@@ -54,23 +55,20 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
               onClick={() => {
                 if (
                   StorageUtil.getReaderConfig("lang") === "zhCN" ||
-                  StorageUtil.getReaderConfig("lang") === "zhTW"
+                  StorageUtil.getReaderConfig("lang") === "zhTW" ||
+                  StorageUtil.getReaderConfig("lang") === "zhMO"
                 ) {
-                  this.handleJump(
-                    "https://troyeguo.notion.site/Koodo-Reader-0c9c7ccdc5104a54825dfc72f1c84bea"
-                  );
+                  this.handleJump("https://koodo.960960.xyz/zh/document");
                 } else {
-                  this.handleJump(
-                    "https://troyeguo.notion.site/Koodo-Reader-Document-9c767af3d66c459db996bdd08a34c34b"
-                  );
+                  this.handleJump("https://koodo.960960.xyz/en/document");
                 }
               }}
             >
-              <Trans>Help</Trans>
+              <Trans>Document</Trans>
             </li>
             <li
               className="sort-by-category-list"
-              onClick={() => {
+              onClick={async () => {
                 this.handleJump(`https://koodo.960960.xyz/en/support`);
               }}
             >
@@ -81,15 +79,12 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
               onClick={() => {
                 if (
                   StorageUtil.getReaderConfig("lang") === "zhCN" ||
-                  StorageUtil.getReaderConfig("lang") === "zhTW"
+                  StorageUtil.getReaderConfig("lang") === "zhTW" ||
+                  StorageUtil.getReaderConfig("lang") === "zhMO"
                 ) {
-                  this.handleJump(
-                    "https://troyeguo.notion.site/215baeda57804fd29dbb0e91d1e6a021?v=360c00183d944b598668f34c255edfd7"
-                  );
+                  this.handleJump("https://koodo.960960.xyz/zh/roadmap");
                 } else {
-                  this.handleJump(
-                    "https://troyeguo.notion.site/d1c19a132932465bae1d89dd963c92ea?v=ca8aa69cf25849c18c92b92ba868663b"
-                  );
+                  this.handleJump("https://koodo.960960.xyz/en/roadmap");
                 }
               }}
             >
@@ -107,7 +102,7 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
               className="sort-by-category-list"
               onClick={() => {
                 this.handleJump(
-                  "https://poeditor.com/join/project?hash=fk4qbQTlsk"
+                  "https://github.com/koodo-reader/koodo-reader#translation"
                 );
               }}
             >
@@ -119,7 +114,7 @@ class AboutDialog extends React.Component<AboutDialogProps, AboutDialogState> {
                 this.handleJump("https://github.com/koodo-reader/koodo-reader");
               }}
             >
-              <Trans>Github Repo</Trans>
+              <Trans>GitHub Repo</Trans>
             </li>
 
             {isElectron && (
